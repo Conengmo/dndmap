@@ -1,0 +1,5 @@
+<form enctype="multipart/form-data" method="post">{% csrf_token %}
+    {{ form.as_p }}
+{#    <input type="file" name="map_file" />#}
+    <input type="submit" value="Save">
+</form>

@@ -1,0 +1,8 @@
+<h1>Maps</h1>
+<ul>
+{% for map in object_list %}
+    <li>{{ map.name }}</li>
+{% empty %}
+    <li>No maps yet.</li>
+{% endfor %}
+</ul>
