@@ -19,7 +19,7 @@ class Map(models.Model):
     height = models.IntegerField(blank=True)
 
     def __str__(self):
-        return f"{self.pk}: {self.name} ({self.user})"
+        return f"{self.pk}: {self.name} (user {self.user})"
 
     @property
     def tiles_urlpath(self):
@@ -49,3 +49,36 @@ class Map(models.Model):
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
+
+
+class Layer(models.Model):
+    map = models.ForeignKey(Map, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f'{self.pk}: {self.name} (map {self.map})'
+
+    def to_dict(self) -> dict:
+        return {
+            'name': self.name,
+            'markers': [marker.to_dict() for marker in self.marker_set.all()],
+        }
+
+
+class Marker(models.Model):
+    layer = models.ForeignKey(Layer, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+
+    def __str__(self):
+        return f'{self.pk}: {self.name} (layer {self.layer})'
+
+    def to_dict(self) -> dict:
+        return {
+            'name': self.name,
+            'description': self.description,
+            'latitude': self.latitude,
+            'longitude': self.longitude,
+        }

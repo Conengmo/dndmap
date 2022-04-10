@@ -1,21 +1,17 @@
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponse, HttpRequest
+from django.shortcuts import render
 from django.urls import reverse
 from django.views import generic
 
+from dndmap.decorators import get_map_obj
 from dndmap.models import Map
 
 
 class ListView(LoginRequiredMixin, generic.ListView):
     model = Map
     template_name = "map/list.html"
-
-    def get_queryset(self):
-        return self.model.objects.filter(user=self.request.user)
-
-
-class DetailView(LoginRequiredMixin, generic.DetailView):
-    model = Map
-    template_name = "map/detail.html"
 
     def get_queryset(self):
         return self.model.objects.filter(user=self.request.user)
@@ -33,3 +29,12 @@ class CreateView(LoginRequiredMixin, generic.CreateView):
 
     def get_success_url(self):
         return reverse("map detail", kwargs={"pk": self.object.pk})
+
+
+@get_map_obj
+@login_required
+def get_map(request: HttpRequest, map_obj: Map):
+    context = {
+        'map_obj': map_obj,
+    }
+    return render(request, 'map/map.html', context)
