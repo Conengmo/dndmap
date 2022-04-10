@@ -43,9 +43,8 @@
 
   <script>
       let map;
-      let base_layer;
+      let component_layers = [];
       let layer_control;
-      let raster_coords;
       const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
       (function setupMap() {
@@ -56,11 +55,11 @@
           map = L.map('map', {
               crs: L.CRS.Simple,
           })
-          raster_coords = new L.RasterCoords(map, img)
+          const raster_coords = new L.RasterCoords(map, img)
           map.setMaxZoom(raster_coords.zoomLevel())
           map.setView(raster_coords.unproject([img[0], img[1]]), 2)
 
-          base_layer = L.tileLayer('{{ map_obj.tiles_urlpath }}{z}/{x}/{y}.png', {
+          L.tileLayer('{{ map_obj.tiles_urlpath }}{z}/{x}/{y}.png', {
               noWrap: true,
               bounds: raster_coords.getMaxBounds(),
               maxNativeZoom: raster_coords.zoomLevel()
@@ -75,12 +74,11 @@
       })();
 
       function clearComponents() {
-          map.eachLayer(function(layer){
-              if (layer !== base_layer) {
-                  layer_control.remove(layer);
-                  layer.remove();
-              }
-          });
+          while (component_layers.length > 0) {
+              let layer = component_layers.pop();
+              layer_control.removeLayer(layer);
+              map.removeLayer(layer);
+          }
       }
 
       function getComponents() {
@@ -89,6 +87,7 @@
               const data = JSON.parse(xhttp.responseText);
               for (let layer of data) {
                   let layer_group = L.layerGroup([]).addTo(map);
+                  component_layers.push(layer_group);
                   layer_control.addOverlay(layer_group, layer.name);
                   for (let marker of layer.markers) {
                       L.marker([marker.latitude, marker.longitude])
