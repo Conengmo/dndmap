@@ -23,6 +23,8 @@
 <body>
 <div id="map"></div>
 
+{% csrf_token %}
+
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
         integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
         crossorigin="">
@@ -31,13 +33,12 @@
 
 <script>
     let map;
+    let base_layer;
     let layer_control;
     let raster_coords;
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-    setupMap();
-    addComponents();
-
-    function setupMap() {
+    (function setupMap() {
         let img = [
             {{ map_obj.width }},
             {{ map_obj.height }},
@@ -49,16 +50,7 @@
         map.setMaxZoom(raster_coords.zoomLevel())
         map.setView(raster_coords.unproject([img[0], img[1]]), 2)
 
-        // set markers on click events in the map
-        map.on('click', function (event) {
-            var coords = raster_coords.project(event.latlng)
-            var marker = L.marker(raster_coords.unproject(coords))
-                .addTo(map)
-            marker.bindPopup(`'[${Math.floor(coords.x)}, ${Math.floor(coords.y)}] ${event.latlng}`)
-                .openPopup()
-        })
-
-        let tile_layer = L.tileLayer('{{ map_obj.tiles_urlpath }}{z}/{x}/{y}.png', {
+        base_layer = L.tileLayer('{{ map_obj.tiles_urlpath }}{z}/{x}/{y}.png', {
             noWrap: true,
             bounds: raster_coords.getMaxBounds(),
             maxNativeZoom: raster_coords.zoomLevel()
@@ -66,20 +58,22 @@
 
         layer_control = L.control.layers({}, {}, {collapsed: false}).addTo(map);
 
-        // let marker = L.marker(rc.unproject([2532, 3996]), {opacity: 0}).addTo(map);
-        // marker.bindTooltip("Amn", {direction: 'center', permanent: true});
-        //
-    }
+        getComponents();
+
+        map.on('click', addNewMarker)
+
+    })();
 
     function clearComponents() {
         map.eachLayer(function(layer){
-            layer_control.remove(layer);
-            layer.remove();
+            if (layer !== base_layer) {
+                layer_control.remove(layer);
+                layer.remove();
+            }
         });
     }
 
-
-    function addComponents() {
+    function getComponents() {
         const xhttp = new XMLHttpRequest();
         xhttp.onload = function() {
             const data = JSON.parse(xhttp.responseText);
@@ -93,11 +87,29 @@
                         .bindPopup(`${marker.name}<br />${marker.description}`);
                 }
             }
-
         }
         xhttp.open("GET", "{% url 'get_components' map_obj.pk %}");
         xhttp.send();
     }
+
+    function addNewMarker(event) {
+        const xhttp = new XMLHttpRequest();
+        xhttp.onload = function() {
+            clearComponents();
+            getComponents();
+        }
+        xhttp.open("POST", "{% url 'add_new_marker' map_obj.pk %}");
+        xhttp.setRequestHeader("Content-type", "application/json");
+        xhttp.setRequestHeader("X-CSRFToken", csrftoken)
+        xhttp.send(JSON.stringify({
+            name: 'hi there',
+            description: 'some longer text',
+            latitude: event.latlng.lat,
+            longitude: event.latlng.lng,
+        }));
+    }
+
+
 
 </script>
 
