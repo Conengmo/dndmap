@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=255)),
-                ('file', models.FileField(upload_to='maps/', validators=[dndmap.validators.validate_image_file_extension])),
+                ('file', models.FileField(upload_to='maps/', validators=[dndmap.validators.validate_image_extension])),
                 ('width', models.IntegerField(blank=True)),
                 ('height', models.IntegerField(blank=True)),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),

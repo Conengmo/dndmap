@@ -5,4 +5,4 @@ from dndmap.models import Map
 
 @admin.register(Map)
 class MapAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'name', 'user')
+    list_display = ("pk", "name", "user")
