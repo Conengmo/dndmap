@@ -1,12 +1,13 @@
+{% extends 'base.html' %}
+
 {% load static %}
 
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Map</title>
-  <meta charset="utf-8"/>
+
+{% block title %}Map{% endblock %}
+
+
+{% block head %}
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
-  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
         integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
         crossorigin="" />
@@ -19,99 +20,107 @@
       background-color: #B0B0B0
     }
   </style>
-</head>
-<body>
-<div id="map"></div>
 
-{% csrf_token %}
-
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
-        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
-        crossorigin="">
-</script>
-<script src="{% static 'rastercoords.js' %}"></script>
-
-<script>
-    let map;
-    let base_layer;
-    let layer_control;
-    let raster_coords;
-    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-    (function setupMap() {
-        let img = [
-            {{ map_obj.width }},
-            {{ map_obj.height }},
-        ]
-        map = L.map('map', {
-            crs: L.CRS.Simple,
-        })
-        raster_coords = new L.RasterCoords(map, img)
-        map.setMaxZoom(raster_coords.zoomLevel())
-        map.setView(raster_coords.unproject([img[0], img[1]]), 2)
-
-        base_layer = L.tileLayer('{{ map_obj.tiles_urlpath }}{z}/{x}/{y}.png', {
-            noWrap: true,
-            bounds: raster_coords.getMaxBounds(),
-            maxNativeZoom: raster_coords.zoomLevel()
-        }).addTo(map)
-
-        layer_control = L.control.layers({}, {}, {collapsed: false}).addTo(map);
-
-        getComponents();
-
-        map.on('click', addNewMarker)
-
-    })();
-
-    function clearComponents() {
-        map.eachLayer(function(layer){
-            if (layer !== base_layer) {
-                layer_control.remove(layer);
-                layer.remove();
-            }
-        });
-    }
-
-    function getComponents() {
-        const xhttp = new XMLHttpRequest();
-        xhttp.onload = function() {
-            const data = JSON.parse(xhttp.responseText);
-            for (let layer of data) {
-                let layer_group = L.layerGroup([]).addTo(map);
-                layer_control.addOverlay(layer_group, layer.name);
-                for (let marker of layer.markers) {
-                    L.marker([marker.latitude, marker.longitude])
-                        .addTo(layer_group)
-                        .bindTooltip(marker.name)
-                        .bindPopup(`${marker.name}<br />${marker.description}`);
-                }
-            }
-        }
-        xhttp.open("GET", "{% url 'get_components' map_obj.pk %}");
-        xhttp.send();
-    }
-
-    function addNewMarker(event) {
-        const xhttp = new XMLHttpRequest();
-        xhttp.onload = function() {
-            clearComponents();
-            getComponents();
-        }
-        xhttp.open("POST", "{% url 'add_new_marker' map_obj.pk %}");
-        xhttp.setRequestHeader("Content-type", "application/json");
-        xhttp.setRequestHeader("X-CSRFToken", csrftoken)
-        xhttp.send(JSON.stringify({
-            name: 'hi there',
-            description: 'some longer text',
-            latitude: event.latlng.lat,
-            longitude: event.latlng.lng,
-        }));
-    }
+{% endblock %}
 
 
+{% block body %}
 
-</script>
+  <div id="map"></div>
 
-</body>
-</html>
+  {% csrf_token %}
+
+{% endblock %}
+
+
+{% block script %}
+
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+          integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+          crossorigin="">
+  </script>
+  <script src="{% static 'rastercoords.js' %}"></script>
+
+  <script>
+      let map;
+      let base_layer;
+      let layer_control;
+      let raster_coords;
+      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+      (function setupMap() {
+          let img = [
+              {{ map_obj.width }},
+              {{ map_obj.height }},
+          ]
+          map = L.map('map', {
+              crs: L.CRS.Simple,
+          })
+          raster_coords = new L.RasterCoords(map, img)
+          map.setMaxZoom(raster_coords.zoomLevel())
+          map.setView(raster_coords.unproject([img[0], img[1]]), 2)
+
+          base_layer = L.tileLayer('{{ map_obj.tiles_urlpath }}{z}/{x}/{y}.png', {
+              noWrap: true,
+              bounds: raster_coords.getMaxBounds(),
+              maxNativeZoom: raster_coords.zoomLevel()
+          }).addTo(map)
+
+          layer_control = L.control.layers({}, {}, {collapsed: false}).addTo(map);
+
+          getComponents();
+
+          map.on('click', addNewMarker)
+
+      })();
+
+      function clearComponents() {
+          map.eachLayer(function(layer){
+              if (layer !== base_layer) {
+                  layer_control.remove(layer);
+                  layer.remove();
+              }
+          });
+      }
+
+      function getComponents() {
+          const xhttp = new XMLHttpRequest();
+          xhttp.onload = function() {
+              const data = JSON.parse(xhttp.responseText);
+              for (let layer of data) {
+                  let layer_group = L.layerGroup([]).addTo(map);
+                  layer_control.addOverlay(layer_group, layer.name);
+                  for (let marker of layer.markers) {
+                      L.marker([marker.latitude, marker.longitude])
+                          .addTo(layer_group)
+                          .bindTooltip(marker.name)
+                          .bindPopup(`${marker.name}<br />${marker.description}`);
+                  }
+              }
+          }
+          xhttp.open("GET", "{% url 'get_components' map_obj.pk %}");
+          xhttp.send();
+      }
+
+      function addNewMarker(event) {
+          const xhttp = new XMLHttpRequest();
+          xhttp.onload = function() {
+              clearComponents();
+              getComponents();
+          }
+          xhttp.open("POST", "{% url 'add_new_marker' map_obj.pk %}");
+          xhttp.setRequestHeader("Content-type", "application/json");
+          xhttp.setRequestHeader("X-CSRFToken", csrftoken)
+          xhttp.send(JSON.stringify({
+              name: 'hi there',
+              description: 'some longer text',
+              latitude: event.latlng.lat,
+              longitude: event.latlng.lng,
+          }));
+      }
+
+
+
+  </script>
+
+{% endblock %}

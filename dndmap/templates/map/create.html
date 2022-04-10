@@ -1,5 +1,23 @@
-<form enctype="multipart/form-data" method="post">{% csrf_token %}
-    {{ form.as_p }}
-{#    <input type="file" name="map_file" />#}
-    <input type="submit" value="Save">
-</form>
+{% extends 'base.html' %}
+
+
+{% block title %}Create map{% endblock %}
+
+
+{% block content %}
+
+  <div class="row">
+    <div class="col">
+
+      <h1>Create map</h1>
+
+      <form enctype="multipart/form-data" method="post">{% csrf_token %}
+        {{ form.as_p }}
+        {#    <input type="file" name="map_file" />#}
+        <input type="submit" value="Save">
+      </form>
+
+    </div>
+  </div>
+
+{% endblock %}
