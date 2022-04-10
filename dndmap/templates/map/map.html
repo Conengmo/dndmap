@@ -26,9 +26,40 @@
 
 {% block body %}
 
+    {% csrf_token %}
+
   <div id="map"></div>
 
-  {% csrf_token %}
+
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="newMarkerOffcanvas">
+    <div class="offcanvas-header">
+      <h5 id="offcanvasRightLabel">Add new marker</h5>
+      <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+      <form action="javascript:sendNewMarkerData()">
+        <div class="row mb-3">
+          <label class="form-label">
+            Title
+            <input class="form-control" type="text" name="name" value="" required />
+          </label>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label">
+            Description
+            <textarea class="form-control" name="description" placeholder=""></textarea>
+          </label>
+        </div>
+
+        <input type="hidden" name="latitude" />
+        <input type="hidden" name="longitude" />
+
+        <button type="submit" class="btn btn-primary">Submit</button>
+
+      </form>
+    </div>
+  </div>
 
 {% endblock %}
 
@@ -69,7 +100,7 @@
 
           getComponents();
 
-          map.on('click', addNewMarker)
+          map.on('click', prepareNewMarkerOffcanvas)
 
       })();
 
@@ -101,9 +132,28 @@
           xhttp.send();
       }
 
-      function addNewMarker(event) {
+      function prepareNewMarkerOffcanvas(event) {
+          const offcanvas = document.getElementById('newMarkerOffcanvas');
+          const form = offcanvas.querySelector('form');
+          form.querySelector('input[name="latitude"]').value = event.latlng.lat;
+          form.querySelector('input[name="longitude"]').value = event.latlng.lng;
+
+          bootstrap.Offcanvas.getOrCreateInstance(offcanvas).show();
+
+          let marker = L.marker([event.latlng.lat, event.latlng.lng]).addTo(map);
+
+          offcanvas.addEventListener('hide.bs.offcanvas', function() {
+              map.removeLayer(marker);
+          }, {once: true})
+
+      }
+
+      function sendNewMarkerData() {
+          const offcanvas = document.getElementById('newMarkerOffcanvas');
+          const form = offcanvas.querySelector('form');
           const xhttp = new XMLHttpRequest();
           xhttp.onload = function() {
+              bootstrap.Offcanvas.getOrCreateInstance(offcanvas).hide();
               clearComponents();
               getComponents();
           }
@@ -111,10 +161,10 @@
           xhttp.setRequestHeader("Content-type", "application/json");
           xhttp.setRequestHeader("X-CSRFToken", csrftoken)
           xhttp.send(JSON.stringify({
-              name: 'hi there',
-              description: 'some longer text',
-              latitude: event.latlng.lat,
-              longitude: event.latlng.lng,
+              name: form.querySelector('input[name="name"]').value,
+              description: form.querySelector('textarea[name="description"]').value,
+              latitude: form.querySelector('input[name="latitude"]').value,
+              longitude: form.querySelector('input[name="longitude"]').value,
           }));
       }
 
