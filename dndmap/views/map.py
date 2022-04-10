@@ -28,7 +28,7 @@ class CreateView(LoginRequiredMixin, generic.CreateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse("map detail", kwargs={"pk": self.object.pk})
+        return reverse("show_map", kwargs={"pk": self.object.pk})
 
 
 @get_map_obj
@@ -36,5 +36,6 @@ class CreateView(LoginRequiredMixin, generic.CreateView):
 def get_map(request: HttpRequest, map_obj: Map):
     context = {
         'map_obj': map_obj,
+        'layers': {layer.pk: layer.name for layer in map_obj.layer_set.all()},
     }
     return render(request, 'map/map.html', context)

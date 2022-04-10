@@ -13,7 +13,7 @@
 
       <ul>
         {% for map in object_list %}
-          <li><a href="{% url 'get_map' map.pk %}">{{ map.name }}</a></li>
+          <li><a href="{% url 'show_map' map.pk %}">{{ map.name }}</a></li>
         {% empty %}
           <li>No maps yet.</li>
         {% endfor %}

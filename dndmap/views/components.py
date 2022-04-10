@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, JsonResponse, HttpResponse
 
 from dndmap.decorators import get_map_obj
-from dndmap.models import Map, Marker
+from dndmap.models import Map, Marker, Layer
 
 
 @get_map_obj
@@ -20,8 +20,12 @@ def get_components(request: HttpRequest, map_obj: Map):
 @login_required
 def add_new_marker(request: HttpRequest, map_obj: Map):
     data = json.loads(request.body)
+    layer_id = data.pop('layer_id')
+    layer = Layer.objects.get(pk=layer_id)
+    if layer.map_id != map_obj.pk:
+        return HttpResponse(status=403)
     Marker.objects.create(
-        layer=map_obj.layer_set.first(),
+        layer=layer,
         **data,
     )
     return HttpResponse()

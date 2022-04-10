@@ -31,9 +31,13 @@ class Map(models.Model):
         return os.path.join(result, str(self.pk), "")
 
     def save(self, *args, **kwargs):
+        created = not bool(self.pk)
         self._add_dimensions()
         super().save(*args, **kwargs)
         self._refresh_tileset()
+        if created:
+            for i in range(6):
+                Layer.objects.create(name=f'zoom {i}', map=self)
 
     def _add_dimensions(self):
         img = Image.open(self.file)

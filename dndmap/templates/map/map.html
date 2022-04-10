@@ -52,6 +52,19 @@
           </label>
         </div>
 
+        <div class="row mb-3">
+          <label class="form-label">
+            Select layer
+            <select class="form-select" name="layer_id">
+              {% for layer_id, layer_name in layers.items %}
+                <option value="{{ layer_id }}" {% if forloop.first %}selected{% endif %}>
+                  {{ layer_name }}
+                </option>
+              {% endfor %}
+            </select>
+          </label>
+        </div>
+
         <input type="hidden" name="latitude" />
         <input type="hidden" name="longitude" />
 
@@ -100,7 +113,19 @@
 
           getComponents();
 
-          map.on('click', prepareNewMarkerOffcanvas)
+          map.on('click', prepareNewMarkerOffcanvas);
+
+          map.on('zoomend', function() {
+              const zoom = map.getZoom();
+              for (let layer of layer_control._layers) {
+                  if (zoom < Number(layer.name.replace('zoom ', ''))) {
+                      map.removeLayer(layer.layer);
+                  } else {
+                      map.addLayer(layer.layer);
+                  }
+              }
+
+          })
 
       })();
 
@@ -165,6 +190,7 @@
               description: form.querySelector('textarea[name="description"]').value,
               latitude: form.querySelector('input[name="latitude"]').value,
               longitude: form.querySelector('input[name="longitude"]').value,
+              layer_id: form.querySelector('select[name="layer_id"]').value,
           }));
       }
 
