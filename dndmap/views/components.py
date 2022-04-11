@@ -24,7 +24,7 @@ def upsert_marker(request: HttpRequest, map_obj: Map):
     layer = Layer.objects.get(pk=layer_id)
     if layer.map_id != map_obj.id:
         return HttpResponse(status=403)
-    marker_id = data.pop('id')
+    marker_id = data.pop('id') or None
     Marker.objects.update_or_create(
         id=marker_id,
         defaults=dict(

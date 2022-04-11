@@ -11,6 +11,12 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
         integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
         crossorigin="" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+        integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="{% static 'awesome_markers/leaflet.awesome-markers.css' %}" />
+
   <style>
     html, body, #map {
       width:100%;
@@ -54,6 +60,33 @@
 
         <div class="row mb-3">
           <label class="form-label">
+            Color
+            <select class="form-select" name="color" required>
+              {% for color_option in marker_color_options %}
+                <option value="{{ color_option }}" {% if color_option == 'blue' %}selected{% endif %}>
+                  {{ color_option }}
+                </option>
+              {% endfor %}
+            </select>
+          </label>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label">
+            Icon
+            <input class="form-control" type="text" name="icon" value="circle" required />
+          </label>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label">
+            Icon color
+            <input class="form-control" type="color" name="icon_color" value="#ffffff" required />
+          </label>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label">
             Select layer
             <select class="form-select" name="layer_id" required>
               {% for layer_id, layer_name in layers.items %}
@@ -82,8 +115,13 @@
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
           integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
-          crossorigin="">
-  </script>
+          crossorigin=""></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"
+          integrity="sha512-Tn2m0TIpgVyTzzvmxLNuqbSJH3JP8jm+Cy3hvHrW7ndTDcJ1w5mBiksqDBb8GpE2ksktFvDB/ykZ0mDpsZj20w=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer"></script>
+  <script src="{% static 'awesome_markers/leaflet.awesome-markers.js' %}"></script>
+
   <script src="{% static 'rastercoords.js' %}"></script>
 
   <script>
@@ -147,7 +185,12 @@
                   component_layers.push(layer_group);
                   layer_control.addOverlay(layer_group, layer.name);
                   for (let marker of layer.markers) {
-                      L.marker([marker.latitude, marker.longitude], {_data: marker})
+                      const icon = L.AwesomeMarkers.icon({
+                          markerColor: marker.color,
+                          icon: marker.icon,
+                          iconColor: marker.icon_color,
+                      });
+                      L.marker([marker.latitude, marker.longitude], {_data: marker, icon: icon})
                           .addTo(layer_group)
                           .bindTooltip(marker.name)
                           .on('click', prepareExistingMarkerOffcanvas);
@@ -162,6 +205,7 @@
           const offcanvas = document.getElementById('markerOffcanvas');
           const form = offcanvas.querySelector('form');
           form.reset();
+          form.querySelector('input[name="id"]').value = '';
           form.querySelector('input[name="latitude"]').value = event.latlng.lat;
           form.querySelector('input[name="longitude"]').value = event.latlng.lng;
 
@@ -184,6 +228,9 @@
           form.querySelector('input[name="latitude"]').value = marker.latitude;
           form.querySelector('input[name="longitude"]').value = marker.longitude;
           form.querySelector('select[name="layer_id"]').value = marker.layer_id;
+          form.querySelector('select[name="color"]').value = marker.color;
+          form.querySelector('input[name="icon"]').value = marker.icon;
+          form.querySelector('input[name="icon_color"]').value = marker.icon_color;
           bootstrap.Offcanvas.getOrCreateInstance(offcanvas).show();
       }
 
@@ -206,6 +253,9 @@
               latitude: form.querySelector('input[name="latitude"]').value,
               longitude: form.querySelector('input[name="longitude"]').value,
               layer_id: form.querySelector('select[name="layer_id"]').value,
+              color: form.querySelector('select[name="color"]').value,
+              icon: form.querySelector('input[name="icon"]').value,
+              icon_color: form.querySelector('input[name="icon_color"]').value,
           }));
       }
 

@@ -71,11 +71,26 @@ class Layer(models.Model):
 
 
 class Marker(models.Model):
+
+    class ColorOptions(models.TextChoices):
+        RED = 'red'
+        DARKRED = 'darkred'
+        ORANGE = 'orange'
+        GREEN = 'green'
+        DARKGREEN = 'darkgreen'
+        BLUE = 'blue'
+        PURPLE = 'purple'
+        DARKPURPLE = 'darkpurple'
+        CADETBLUE = 'cadetblue'
+
     layer = models.ForeignKey(Layer, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     latitude = models.FloatField()
     longitude = models.FloatField()
+    color = models.CharField(max_length=16, choices=ColorOptions.choices)
+    icon = models.CharField(max_length=255)
+    icon_color = models.CharField(max_length=64)
 
     def __str__(self):
         return f'{self.id}: {self.name} (layer {self.layer})'
@@ -88,4 +103,9 @@ class Marker(models.Model):
             'latitude': self.latitude,
             'longitude': self.longitude,
             'layer_id': self.layer_id,
+            'color': self.color,
+            'icon': self.icon,
+            'icon_color': self.icon_color,
         }
+
+

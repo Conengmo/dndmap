@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.views import generic
 
 from dndmap.decorators import get_map_obj
-from dndmap.models import Map
+from dndmap.models import Map, Marker
 
 
 class ListView(LoginRequiredMixin, generic.ListView):
@@ -37,5 +37,6 @@ def get_map(request: HttpRequest, map_obj: Map):
     context = {
         'map_obj': map_obj,
         'layers': {layer.pk: layer.name for layer in map_obj.layer_set.all()},
+        'marker_color_options': Marker.ColorOptions.values,
     }
     return render(request, 'map/map.html', context)
