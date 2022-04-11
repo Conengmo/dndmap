@@ -60,10 +60,11 @@ class Layer(models.Model):
     name = models.CharField(max_length=255)
 
     def __str__(self):
-        return f'{self.pk}: {self.name} (map {self.map})'
+        return f'{self.id}: {self.name} (map {self.map})'
 
     def to_dict(self) -> dict:
         return {
+            'id': self.id,
             'name': self.name,
             'markers': [marker.to_dict() for marker in self.marker_set.all()],
         }
@@ -77,12 +78,14 @@ class Marker(models.Model):
     longitude = models.FloatField()
 
     def __str__(self):
-        return f'{self.pk}: {self.name} (layer {self.layer})'
+        return f'{self.id}: {self.name} (layer {self.layer})'
 
     def to_dict(self) -> dict:
         return {
+            'id': self.id,
             'name': self.name,
             'description': self.description,
             'latitude': self.latitude,
             'longitude': self.longitude,
+            'layer_id': self.layer_id,
         }

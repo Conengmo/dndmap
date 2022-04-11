@@ -13,5 +13,5 @@ urlpatterns = [
     path("map/add/", views_map.CreateView.as_view(), name="create_map"),
     path("map/<int:pk>/", views_map.get_map, name="show_map"),
     path("map/<int:pk>/components", views_components.get_components, name='get_components'),
-    path("map/<int:pk>/components/add", views_components.add_new_marker, name='add_new_marker'),
+    path("map/<int:pk>/components/add", views_components.upsert_marker, name='upsert_marker'),
 ]

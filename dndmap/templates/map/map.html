@@ -31,13 +31,13 @@
   <div id="map"></div>
 
 
-  <div class="offcanvas offcanvas-end" tabindex="-1" id="newMarkerOffcanvas">
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="markerOffcanvas">
     <div class="offcanvas-header">
       <h5 id="offcanvasRightLabel">Add new marker</h5>
       <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body">
-      <form action="javascript:sendNewMarkerData()">
+      <form action="javascript:sendMarkerData()">
         <div class="row mb-3">
           <label class="form-label">
             Title
@@ -55,7 +55,7 @@
         <div class="row mb-3">
           <label class="form-label">
             Select layer
-            <select class="form-select" name="layer_id">
+            <select class="form-select" name="layer_id" required>
               {% for layer_id, layer_name in layers.items %}
                 <option value="{{ layer_id }}" {% if forloop.first %}selected{% endif %}>
                   {{ layer_name }}
@@ -65,6 +65,7 @@
           </label>
         </div>
 
+        <input type="hidden" name="id" value="" />
         <input type="hidden" name="latitude" />
         <input type="hidden" name="longitude" />
 
@@ -146,10 +147,10 @@
                   component_layers.push(layer_group);
                   layer_control.addOverlay(layer_group, layer.name);
                   for (let marker of layer.markers) {
-                      L.marker([marker.latitude, marker.longitude])
+                      L.marker([marker.latitude, marker.longitude], {_data: marker})
                           .addTo(layer_group)
                           .bindTooltip(marker.name)
-                          .bindPopup(`${marker.name}<br />${marker.description}`);
+                          .on('click', prepareExistingMarkerOffcanvas);
                   }
               }
           }
@@ -158,8 +159,9 @@
       }
 
       function prepareNewMarkerOffcanvas(event) {
-          const offcanvas = document.getElementById('newMarkerOffcanvas');
+          const offcanvas = document.getElementById('markerOffcanvas');
           const form = offcanvas.querySelector('form');
+          form.reset();
           form.querySelector('input[name="latitude"]').value = event.latlng.lat;
           form.querySelector('input[name="longitude"]').value = event.latlng.lng;
 
@@ -170,11 +172,23 @@
           offcanvas.addEventListener('hide.bs.offcanvas', function() {
               map.removeLayer(marker);
           }, {once: true})
-
       }
 
-      function sendNewMarkerData() {
-          const offcanvas = document.getElementById('newMarkerOffcanvas');
+      function prepareExistingMarkerOffcanvas(event) {
+          const offcanvas = document.getElementById('markerOffcanvas');
+          const form = offcanvas.querySelector('form');
+          const marker = event.sourceTarget.options._data;
+          form.querySelector('input[name="id"]').value = marker.id;
+          form.querySelector('input[name="name"]').value = marker.name;
+          form.querySelector('textarea[name="description"]').value = marker.description;
+          form.querySelector('input[name="latitude"]').value = marker.latitude;
+          form.querySelector('input[name="longitude"]').value = marker.longitude;
+          form.querySelector('select[name="layer_id"]').value = marker.layer_id;
+          bootstrap.Offcanvas.getOrCreateInstance(offcanvas).show();
+      }
+
+      function sendMarkerData() {
+          const offcanvas = document.getElementById('markerOffcanvas');
           const form = offcanvas.querySelector('form');
           const xhttp = new XMLHttpRequest();
           xhttp.onload = function() {
@@ -182,10 +196,11 @@
               clearComponents();
               getComponents();
           }
-          xhttp.open("POST", "{% url 'add_new_marker' map_obj.pk %}");
+          xhttp.open("POST", "{% url 'upsert_marker' map_obj.id %}");
           xhttp.setRequestHeader("Content-type", "application/json");
           xhttp.setRequestHeader("X-CSRFToken", csrftoken)
           xhttp.send(JSON.stringify({
+              id: form.querySelector('input[name="id"]').value,
               name: form.querySelector('input[name="name"]').value,
               description: form.querySelector('textarea[name="description"]').value,
               latitude: form.querySelector('input[name="latitude"]').value,
