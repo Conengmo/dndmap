@@ -16,6 +16,7 @@
         crossorigin="anonymous"
         referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="{% static 'awesome_markers/leaflet.awesome-markers.css' %}" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.css">
 
   <style>
     html, body, #map {
@@ -109,6 +110,43 @@
     </div>
   </div>
 
+
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="layersOffcanvas">
+    <div class="offcanvas-header">
+      <h5 id="offcanvasRightLabel">Layers</h5>
+      <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+
+      {% for layer in layers %}
+        <div class="row mb-4">
+          <form>
+            <div class="row">
+              <label class="form-label">
+                Layer name
+                <input class="form-control" type="text" name="name" value="{{ layer.name }}" required />
+              </label>
+            </div>
+
+            <div class="row">
+              <label class="form-label">
+                Show at zoom level
+                <input type="number" class="form-control" name="show_at_zoom_level"
+                       value="{{ layer.show_at_zoom_level }}" min="1" max="5" step="1">
+              </label>
+            </div>
+
+            <input type="hidden" name="id" value="{{ layer.id }}" />
+
+            <button type="submit" class="btn btn-primary">Submit</button>
+
+          </form>
+        </div>
+      {% endfor %}
+
+    </div>
+  </div>
+
 {% endblock %}
 
 
@@ -122,6 +160,7 @@
           crossorigin="anonymous"
           referrerpolicy="no-referrer"></script>
   <script src="{% static 'awesome_markers/leaflet.awesome-markers.js' %}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
 
   <script src="{% static 'rastercoords.js' %}"></script>
 
@@ -153,19 +192,11 @@
 
           getComponents();
 
-          map.on('click', prepareNewMarkerOffcanvas);
+          L.easyButton('fa-list', prepareLayersOffcanvas).addTo(map);
 
-          map.on('zoomend', function() {
-              const zoom = map.getZoom();
-              for (let layer of layer_control._layers) {
-                  if (zoom < Number(layer.name.replace('zoom ', ''))) {
-                      map.removeLayer(layer.layer);
-                  } else {
-                      map.addLayer(layer.layer);
-                  }
-              }
+          map.on('dblclick', prepareNewMarkerOffcanvas);
 
-          })
+          map.on('zoomend', setLayerVisibility);
 
       })();
 
@@ -183,6 +214,7 @@
               const data = JSON.parse(xhttp.responseText);
               for (let layer of data) {
                   let layer_group = L.layerGroup([]).addTo(map);
+                  layer_group.show_at_zoom_level = layer.show_at_zoom_level;
                   component_layers.push(layer_group);
                   layer_control.addOverlay(layer_group, layer.name);
                   for (let marker of layer.markers) {
@@ -197,9 +229,21 @@
                           .on('click', prepareExistingMarkerOffcanvas);
                   }
               }
+              setLayerVisibility();
           }
           xhttp.open("GET", "{% url 'get_components' map_obj.pk %}");
           xhttp.send();
+      }
+
+      function setLayerVisibility() {
+          const zoom = map.getZoom();
+          for (let layer of component_layers) {
+              if (zoom < layer.show_at_zoom_level) {
+                  map.removeLayer(layer);
+              } else {
+                  map.addLayer(layer);
+              }
+          }
       }
 
       function prepareNewMarkerOffcanvas(event) {
@@ -235,6 +279,14 @@
           bootstrap.Offcanvas.getOrCreateInstance(offcanvas).show();
       }
 
+      function prepareLayersOffcanvas(event) {
+          const offcanvas = document.getElementById('layersOffcanvas');
+          offcanvas.querySelectorAll('form').forEach(function(el) {
+              el.addEventListener('submit', sendLayerData);
+          });
+          bootstrap.Offcanvas.getOrCreateInstance(offcanvas).show();
+      }
+
       function sendMarkerData() {
           const offcanvas = document.getElementById('markerOffcanvas');
           const form = offcanvas.querySelector('form');
@@ -257,6 +309,24 @@
               color: form.querySelector('select[name="color"]').value,
               icon: form.querySelector('input[name="icon"]').value,
               icon_color: form.querySelector('input[name="icon_color"]').value,
+          }));
+      }
+
+      function sendLayerData(event) {
+          event.preventDefault();
+          const form = event.target;
+          const xhttp = new XMLHttpRequest();
+          xhttp.onload = function() {
+              clearComponents();
+              getComponents();
+          }
+          xhttp.open("POST", "{% url 'upsert_layer' map_obj.id %}");
+          xhttp.setRequestHeader("Content-type", "application/json");
+          xhttp.setRequestHeader("X-CSRFToken", csrftoken)
+          xhttp.send(JSON.stringify({
+              id: form.querySelector('input[name="id"]').value,
+              name: form.querySelector('input[name="name"]').value,
+              show_at_zoom_level: form.querySelector('input[name="show_at_zoom_level"]').value,
           }));
       }
 

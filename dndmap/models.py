@@ -36,8 +36,7 @@ class Map(models.Model):
         super().save(*args, **kwargs)
         self._refresh_tileset()
         if created:
-            for i in range(6):
-                Layer.objects.create(name=f'zoom {i}', map=self)
+            Layer.objects.create(name='default', map=self)
 
     def _add_dimensions(self):
         img = Image.open(self.file)
@@ -48,7 +47,7 @@ class Map(models.Model):
         shutil.rmtree(self.tiles_filepath, ignore_errors=True)
         # tile generation: fire and forget
         subprocess.Popen(
-            f"python bin/gdal2tiles-leaflet.py -l -p raster -z 0-5 -w none {self.file} {self.tiles_filepath}",
+            f"python bin/gdal2tiles-leaflet.py -l -p raster -z 1-5 -w none {self.file} {self.tiles_filepath}",
             shell=True,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
@@ -58,6 +57,7 @@ class Map(models.Model):
 class Layer(models.Model):
     map = models.ForeignKey(Map, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
+    show_at_zoom_level = models.IntegerField(default=0)
 
     def __str__(self):
         return f'{self.id}: {self.name} (map {self.map})'
@@ -66,6 +66,7 @@ class Layer(models.Model):
         return {
             'id': self.id,
             'name': self.name,
+            'show_at_zoom_level': self.show_at_zoom_level,
             'markers': [marker.to_dict() for marker in self.marker_set.all()],
         }
 

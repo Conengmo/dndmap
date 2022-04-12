@@ -2,6 +2,7 @@ import json
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, JsonResponse, HttpResponse
+from django.views.decorators.http import require_http_methods
 
 from dndmap.decorators import get_map_obj
 from dndmap.models import Map, Marker, Layer
@@ -31,5 +32,19 @@ def upsert_marker(request: HttpRequest, map_obj: Map):
             layer=layer,
             **data,
         )
+    )
+    return HttpResponse()
+
+
+@get_map_obj
+@login_required
+@require_http_methods(['POST'])
+def upsert_layer(request: HttpRequest, map_obj: Map):
+    data = json.loads(request.body)
+    layer_id = data.pop('id') or None
+    Layer.objects.update_or_create(
+        id=layer_id,
+        map=map_obj,
+        defaults=data,
     )
     return HttpResponse()
