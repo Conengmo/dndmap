@@ -10,8 +10,8 @@ def get_map_obj(func):
     @wraps(func)
     def decorator(request, pk):
         map_obj = Map.objects.get(pk=pk)
-        if map_obj.user != request.user:
-            return HttpResponse(403)
+        if not map_obj.collaborators.filter(map__collaborators=request.user).exists():
+            return HttpResponse(status=403)
         return func(request, map_obj)
 
     return decorator

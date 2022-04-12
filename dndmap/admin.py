@@ -5,14 +5,14 @@ from dndmap.models import Map, Layer, Marker
 
 @admin.register(Map)
 class MapAdmin(admin.ModelAdmin):
-    list_display = ("pk", "name", "user")
+    list_display = ("id", "name", "owner")
 
 
 @admin.register(Layer)
-class MapAdmin(admin.ModelAdmin):
+class LayerAdmin(admin.ModelAdmin):
     list_display = ("pk", "name", "map")
 
 
 @admin.register(Marker)
-class MapAdmin(admin.ModelAdmin):
+class MarkerAdmin(admin.ModelAdmin):
     list_display = ("pk", "name", "layer")

@@ -14,7 +14,7 @@ class ListView(LoginRequiredMixin, generic.ListView):
     template_name = "map/list.html"
 
     def get_queryset(self):
-        return self.model.objects.filter(user=self.request.user)
+        return self.model.objects.filter(collaborators=self.request.user)
 
 
 class CreateView(LoginRequiredMixin, generic.CreateView):
@@ -24,8 +24,10 @@ class CreateView(LoginRequiredMixin, generic.CreateView):
 
     def form_valid(self, form):
         obj = form.save(commit=False)
-        obj.user = self.request.user
-        return super().form_valid(form)
+        obj.owner = self.request.user
+        response = super().form_valid(form)
+        obj.collaborators.add(self.request.user)
+        return response
 
     def get_success_url(self):
         return reverse("show_map", kwargs={"pk": self.object.pk})

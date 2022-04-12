@@ -13,13 +13,20 @@ from .validators import validate_image_extension
 
 class Map(models.Model):
     name = models.CharField(max_length=255)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    collaborators = models.ManyToManyField(User, related_name='map_collaborators')
     file = models.FileField(upload_to="maps/", validators=[validate_image_extension])
     width = models.IntegerField(blank=True)
     height = models.IntegerField(blank=True)
 
+    _original_file = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._original_file = self.file
+
     def __str__(self):
-        return f"{self.pk}: {self.name} (user {self.user})"
+        return f"{self.pk}: {self.name} (user {self.owner})"
 
     @property
     def tiles_urlpath(self):
@@ -32,9 +39,12 @@ class Map(models.Model):
 
     def save(self, *args, **kwargs):
         created = not bool(self.pk)
-        self._add_dimensions()
+        is_file_changed = self.file != self._original_file
+        if is_file_changed:
+            self._add_dimensions()
         super().save(*args, **kwargs)
-        self._refresh_tileset()
+        if is_file_changed:
+            self._refresh_tileset()
         if created:
             Layer.objects.create(name='default', map=self)
 
