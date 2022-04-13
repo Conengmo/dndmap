@@ -91,6 +91,11 @@ class Map(models.Model):
             stderr=subprocess.DEVNULL,
         )
 
+    def delete(self, *args, **kwargs):
+        os.remove(str(self.file))
+        shutil.rmtree(self.tiles_filepath, ignore_errors=True)
+        super().delete(*args, **kwargs)
+
 
 class Layer(models.Model):
     map = models.ForeignKey(Map, on_delete=models.CASCADE)
