@@ -1,4 +1,4 @@
-gdal
+# pygdal
 django==3.2.*
 Pillow==9.1.*
 django-cleanup

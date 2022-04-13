@@ -1,3 +1,4 @@
+import math
 import os
 import shutil
 import subprocess
@@ -8,6 +9,7 @@ from django.contrib.staticfiles import finders
 from django.db import models
 from django.templatetags.static import static
 
+from . import settings
 from .validators import validate_image_extension
 
 
@@ -28,12 +30,16 @@ class Map(models.Model):
     file = models.FileField(upload_to="maps/", validators=[validate_image_extension])
     width = models.IntegerField(blank=True)
     height = models.IntegerField(blank=True)
+    min_zoom = models.IntegerField(default=1)
+    max_zoom = models.IntegerField(default=5)
 
     _original_file = None
+    _original_zoom = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._original_file = self.file
+        self._original_zoom = (self.min_zoom, self.max_zoom)
 
     def __str__(self):
         return f"{self.pk}: {self.name} (party {self.party})"
@@ -49,11 +55,13 @@ class Map(models.Model):
 
     def save(self, *args, **kwargs):
         created = not bool(self.pk)
-        is_file_changed = self.file != self._original_file
+        is_file_changed = self._original_file != self.file
         if is_file_changed:
             self._add_dimensions()
+        if created:
+            self._set_max_zoom()
         super().save(*args, **kwargs)
-        if is_file_changed:
+        if is_file_changed or self._original_zoom != (self.min_zoom, self.max_zoom):
             self._refresh_tileset()
         if created:
             Layer.objects.create(name='default', map=self)
@@ -63,11 +71,22 @@ class Map(models.Model):
         self.width = img.width
         self.height = img.height
 
+    def _set_max_zoom(self):
+        """Calculate a maximum zoom level that fits given the image size."""
+        tilesize = 256
+        self.max_zoom = math.ceil(
+            math.log(
+                max(self.width, self.height) / tilesize
+            ) / math.log(2)
+        )
+
     def _refresh_tileset(self):
         shutil.rmtree(self.tiles_filepath, ignore_errors=True)
         # tile generation: fire and forget
         subprocess.Popen(
-            f"python bin/gdal2tiles-leaflet.py -l -p raster -z 1-5 -w none {self.file} {self.tiles_filepath}",
+            f"{settings.PYTHON_EXECUTABLE} bin/gdal2tiles-leaflet.py"
+            f" -l -p raster -z {self.min_zoom}-{self.max_zoom} -w none"
+            f" {self.file} {self.tiles_filepath}",
             shell=True,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,

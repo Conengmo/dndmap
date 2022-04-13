@@ -179,13 +179,13 @@
               crs: L.CRS.Simple,
           })
           const raster_coords = new L.RasterCoords(map, img)
-          map.setMaxZoom(raster_coords.zoomLevel())
           map.setView(raster_coords.unproject([img[0], img[1]]), 2)
 
           L.tileLayer('{{ map_obj.tiles_urlpath }}{z}/{x}/{y}.png', {
               noWrap: true,
               bounds: raster_coords.getMaxBounds(),
-              maxNativeZoom: raster_coords.zoomLevel()
+              minZoom: {{ map_obj.min_zoom }},
+              maxZoom: {{ map_obj.max_zoom }},
           }).addTo(map)
 
           layer_control = L.control.layers({}, {}, {collapsed: false}).addTo(map);
