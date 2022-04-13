@@ -194,6 +194,32 @@
 
           L.easyButton('fa-list', prepareLayersOffcanvas).addTo(map);
 
+          L.easyButton({
+              states: [{
+                  stateName: 'show-labels',
+                  icon: 'fa-tag',
+                  title: 'show labels, hide markers',
+                  onClick: function(btn) {
+                      component_layers.forEach(function(layer) {
+                          layer.invoke('openTooltip');
+                          layer.invoke('setOpacity', 0);
+                      });
+                      btn.state('show-markers');
+                  }
+              }, {
+                  stateName: 'show-markers',
+                  icon: 'fa-map-marker',
+                  title:  'show markers, hide labels',
+                  onClick: function(btn) {
+                      component_layers.forEach(function(layer) {
+                          layer.invoke('closeTooltip');
+                          layer.invoke('setOpacity', 1);
+                      });
+                      btn.state('show-labels');
+                  }
+              }]
+          }).addTo(map);
+
           map.on('dblclick', prepareNewMarkerOffcanvas);
 
           map.on('zoomend', setLayerVisibility);
