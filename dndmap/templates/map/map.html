@@ -91,9 +91,9 @@
           <label class="form-label">
             Select layer
             <select class="form-select" name="layer_id" required>
-              {% for layer_id, layer_name in layers.items %}
-                <option value="{{ layer_id }}" {% if forloop.first %}selected{% endif %}>
-                  {{ layer_name }}
+              {% for layer in layers %}
+                <option value="{{ layer.id }}" {% if forloop.first %}selected{% endif %}>
+                  {{ layer.name }}
                 </option>
               {% endfor %}
             </select>
