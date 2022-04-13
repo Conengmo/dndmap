@@ -50,8 +50,7 @@ class Map(models.Model):
 
     @property
     def tiles_filepath(self):
-        result = finders.find("tiles")
-        return os.path.join(result, str(self.pk), "")
+        return settings.STATIC_ROOT / 'tiles' / str(self.id)
 
     def save(self, *args, **kwargs):
         created = not bool(self.pk)
