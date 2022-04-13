@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponse, HttpRequest
+from django.core.exceptions import ValidationError
+from django.http import HttpRequest
 from django.shortcuts import render
 from django.urls import reverse
 from django.views import generic
@@ -14,7 +15,7 @@ class ListView(LoginRequiredMixin, generic.ListView):
     template_name = "map/list.html"
 
     def get_queryset(self):
-        return self.model.objects.filter(collaborators=self.request.user)
+        return self.model.objects.filter(party=self.request.user.party)
 
 
 class CreateView(LoginRequiredMixin, generic.CreateView):
@@ -24,10 +25,10 @@ class CreateView(LoginRequiredMixin, generic.CreateView):
 
     def form_valid(self, form):
         obj = form.save(commit=False)
-        obj.owner = self.request.user
-        response = super().form_valid(form)
-        obj.collaborators.add(self.request.user)
-        return response
+        if not self.request.user.party:
+            raise ValidationError('You have to be in a party to create a map.')
+        obj.party = self.request.user.party
+        return super().form_valid(form)
 
     def get_success_url(self):
         return reverse("show_map", kwargs={"pk": self.object.pk})

@@ -3,7 +3,7 @@ import shutil
 import subprocess
 from PIL import Image
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from django.contrib.staticfiles import finders
 from django.db import models
 from django.templatetags.static import static
@@ -11,10 +11,20 @@ from django.templatetags.static import static
 from .validators import validate_image_extension
 
 
+class Party(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.id}: {self.name}"
+
+
+class User(AbstractUser):
+    party = models.ForeignKey(Party, on_delete=models.CASCADE, blank=True, null=True)
+
+
 class Map(models.Model):
     name = models.CharField(max_length=255)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    collaborators = models.ManyToManyField(User, related_name='map_collaborators')
+    party = models.ForeignKey(Party, on_delete=models.CASCADE)
     file = models.FileField(upload_to="maps/", validators=[validate_image_extension])
     width = models.IntegerField(blank=True)
     height = models.IntegerField(blank=True)
@@ -26,7 +36,7 @@ class Map(models.Model):
         self._original_file = self.file
 
     def __str__(self):
-        return f"{self.pk}: {self.name} (user {self.owner})"
+        return f"{self.pk}: {self.name} (party {self.party})"
 
     @property
     def tiles_urlpath(self):
