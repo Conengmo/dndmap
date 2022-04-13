@@ -204,6 +204,17 @@
                           layer.invoke('openTooltip');
                           layer.invoke('setOpacity', 0);
                       });
+                      btn.state('show-both');
+                  }
+              }, {
+                  stateName: 'show-both',
+                  icon: 'fa-tags',
+                  title:  'show markers and labels',
+                  onClick: function(btn) {
+                      component_layers.forEach(function(layer) {
+                          layer.invoke('openTooltip');
+                          layer.invoke('setOpacity', 1);
+                      });
                       btn.state('show-markers');
                   }
               }, {
