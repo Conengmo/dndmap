@@ -223,9 +223,13 @@
                           icon: marker.icon,
                           iconColor: marker.icon_color,
                       });
-                      L.marker([marker.latitude, marker.longitude], {_data: marker, icon: icon})
+                      L.marker(
+                          [marker.latitude, marker.longitude],
+                          {_data: marker, icon: icon, draggable: true},
+                      )
                           .addTo(layer_group)
                           .bindTooltip(marker.name)
+                          .on('moveend', moveMarker)
                           .on('click', prepareExistingMarkerOffcanvas);
                   }
               }
@@ -327,6 +331,18 @@
               id: form.querySelector('input[name="id"]').value,
               name: form.querySelector('input[name="name"]').value,
               show_at_zoom_level: form.querySelector('input[name="show_at_zoom_level"]').value,
+          }));
+      }
+
+      function moveMarker(event) {
+          const xhttp = new XMLHttpRequest();
+          xhttp.open("POST", "{% url 'update_marker_coords' map_obj.id %}");
+          xhttp.setRequestHeader("Content-type", "application/json");
+          xhttp.setRequestHeader("X-CSRFToken", csrftoken)
+          xhttp.send(JSON.stringify({
+              id: event.target.options._data.id,
+              latitude: event.target._latlng.lat,
+              longitude: event.target._latlng.lng,
           }));
       }
 

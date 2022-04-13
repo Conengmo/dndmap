@@ -14,5 +14,6 @@ urlpatterns = [
     path("map/<int:pk>/", views_map.get_map, name="show_map"),
     path("map/<int:pk>/components", views_components.get_components, name='get_components'),
     path("map/<int:pk>/marker/add", views_components.upsert_marker, name='upsert_marker'),
+    path("map/<int:pk>/marker/update-coordinates/", views_components.update_marker_coords, name="update_marker_coords"),
     path("map/<int:pk>/layer/add", views_components.upsert_layer, name='upsert_layer'),
 ]

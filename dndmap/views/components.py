@@ -38,6 +38,14 @@ def upsert_marker(request: HttpRequest, map_obj: Map):
 
 @get_map_obj
 @login_required
+def update_marker_coords(request: HttpRequest, map_obj: Map):
+    data = json.loads(request.body)
+    Marker.objects.filter(id=data.pop('id'), layer__map=map_obj).update(**data)
+    return HttpResponse()
+
+
+@get_map_obj
+@login_required
 @require_http_methods(['POST'])
 def upsert_layer(request: HttpRequest, map_obj: Map):
     data = json.loads(request.body)
