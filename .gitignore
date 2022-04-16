@@ -116,5 +116,8 @@ dmypy.json
 # Pycharm
 .idea/
 
+.DS_store
+
 dndmap/static/tiles/
+static/
 maps/

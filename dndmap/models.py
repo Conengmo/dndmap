@@ -3,13 +3,12 @@ import os
 import shutil
 import subprocess
 from PIL import Image
+from django.conf import settings
 
 from django.contrib.auth.models import AbstractUser
-from django.contrib.staticfiles import finders
 from django.db import models
 from django.templatetags.static import static
 
-from . import settings
 from .validators import validate_image_extension
 
 
