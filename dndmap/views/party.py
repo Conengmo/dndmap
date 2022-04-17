@@ -28,6 +28,8 @@ class CreateView(LoginRequiredMixin, generic.CreateView):
     def form_valid(self, form):
         if self.request.user.party:
             raise ValidationError('This user is already in a party.')
+        obj = form.save(commit=False)
+        obj.admin = self.request.user
         response = super().form_valid(form)
         self.request.user.party = self.object
         self.request.user.save()

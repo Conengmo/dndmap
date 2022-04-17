@@ -12,15 +12,16 @@ from django.templatetags.static import static
 from .validators import validate_image_extension
 
 
+class User(AbstractUser):
+    party = models.ForeignKey('Party', on_delete=models.CASCADE, blank=True, null=True)
+
+
 class Party(models.Model):
     name = models.CharField(max_length=255)
+    admin = models.ForeignKey(User, on_delete=models.CASCADE, related_name='+')
 
     def __str__(self):
         return f"{self.id}: {self.name}"
-
-
-class User(AbstractUser):
-    party = models.ForeignKey(Party, on_delete=models.CASCADE, blank=True, null=True)
 
 
 class Map(models.Model):

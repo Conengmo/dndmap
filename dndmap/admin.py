@@ -4,8 +4,10 @@ from django.contrib.auth.admin import UserAdmin
 from dndmap.models import Map, Layer, Marker, Party, User
 
 
-class UserPartyInline(admin.TabularInline):
+class UserInline(admin.TabularInline):
     model = User
+    fields = ['username']
+    extra = 0
 
 
 @admin.register(User)
@@ -20,7 +22,7 @@ class CustomUserAdmin(UserAdmin):
 @admin.register(Party)
 class PartyAdmin(admin.ModelAdmin):
     list_display = ("id", "name")
-    inlines = [UserPartyInline]
+    inlines = [UserInline]
 
 
 @admin.register(Map)
