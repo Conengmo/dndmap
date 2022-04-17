@@ -20,4 +20,25 @@
     </div>
   </div>
 
+  <div class="row">
+    <div class="col">
+
+      <h3>Party members</h3>
+
+      <ul>
+        {% for member in members %}
+          <form action="{% url 'party_delete_member' object.id member.id %}" method="get">
+            <li class="my-1">
+              <span class="mr4">{{ member.username }}</span>
+              {% if request.user.party.admin_id != member.id %}
+                <button class="btn btn-outline-danger btn-sm ms-2">Delete</button>
+              {% endif %}
+            </li>
+          </form>
+        {% endfor %}
+      </ul>
+
+    </div>
+  </div>
+
 {% endblock %}

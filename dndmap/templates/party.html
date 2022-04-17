@@ -9,11 +9,23 @@
     <h1>Party</h1>
 
     {% if request.user.party %}
+
       <p>You are a member of the party "{{ request.user.party.name }}".</p>
-      <p><a href="{% url 'update_party' request.user.party.id %}">Edit your party</a></p>
+      <p>Party members:</p>
+      <ul>
+        {% for member in members %}
+          <li>{{ member }}</li>
+        {% endfor %}
+      </ul>
+      {% if request.user.party.admin == request.user %}
+        <p><a href="{% url 'update_party' request.user.party.id %}">Edit your party</a></p>
+      {% endif %}
+
     {% else %}
+
       <p>You are not yet in a party.</p>
       <p><a href="{% url 'create_party' %}">Create a party</a></p>
+
     {% endif %}
 
   </div>

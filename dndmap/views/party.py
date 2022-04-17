@@ -1,16 +1,18 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import ValidationError
+from django.forms import modelformset_factory
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views import generic
 
-from dndmap.models import Party
+from dndmap.models import Party, User
 
 
 def party_view(request):
-    context = {
-    }
+    context = {}
+    if request.user.party:
+        context['members'] = User.objects.filter(party=request.user.party).values_list('username', flat=True)
     return render(request, 'party.html', context)
 
 
@@ -50,7 +52,13 @@ class UpdateView(PermissionRequiredMixin, LoginRequiredMixin, generic.UpdateView
     fields = ["name"]
 
     def has_permission(self):
-        return self.request.user.party_id == self.kwargs['pk']
+        return Party.objects.get(id=self.kwargs['pk']).admin == self.request.user
+
+    def get(self, request, *args, **kwargs):
+        self.extra_context = {
+            'members': User.objects.filter(party_id=self.kwargs['pk']).values('id', 'username')
+        }
+        return super().get(request, *args, **kwargs)
 
     def get_success_url(self):
         messages.success(
@@ -59,3 +67,14 @@ class UpdateView(PermissionRequiredMixin, LoginRequiredMixin, generic.UpdateView
             'alert-success',
         )
         return reverse("party")
+
+
+def delete_party_member(request, party_id, user_id):
+    if Party.objects.get(id=party_id).admin != request.user:
+        raise ValidationError('You are not the admin for this party.')
+    if user_id == request.user.id:
+        raise ValidationError('Cannot delete the admin of this party.')
+    user_to_delete = User.objects.get(id=user_id)
+    user_to_delete.delete()
+    messages.success(request, f'Deleted user {user_to_delete.username}.', 'alert-success')
+    return redirect(reverse('party'))
