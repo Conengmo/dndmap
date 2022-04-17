@@ -13,7 +13,7 @@ def party_view(request):
     context = {}
     if request.user.party:
         context['members'] = User.objects.filter(party=request.user.party).values_list('username', flat=True)
-    return render(request, 'party.html', context)
+    return render(request, 'party/party.html', context)
 
 
 class CreateView(LoginRequiredMixin, generic.CreateView):
