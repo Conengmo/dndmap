@@ -4,6 +4,7 @@ from django.urls import path, include
 from .views import main as views_main
 from .views import map as views_map
 from .views import components as views_components
+from .views import party as views_party
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -16,4 +17,7 @@ urlpatterns = [
     path("map/<int:pk>/marker/add", views_components.upsert_marker, name='upsert_marker'),
     path("map/<int:pk>/marker/update-coordinates/", views_components.update_marker_coords, name="update_marker_coords"),
     path("map/<int:pk>/layer/add", views_components.upsert_layer, name='upsert_layer'),
+    path("party/", views_party.party_view, name='party'),
+    path("party/<int:pk>/", views_party.UpdateView.as_view(), name='update_party'),
+    path("party/add/", views_party.CreateView.as_view(), name='create_party'),
 ]
