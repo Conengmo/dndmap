@@ -16,6 +16,15 @@
   {% block body %}
     <div class="container">
 
+      {% for message in messages %}
+        <div>
+          <div class="alert {{ message.tags }} alert-dismissible" role="alert" >
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        </div>
+      {% endfor %}
+
       {% block content %}{% endblock %}
 
     </div>
