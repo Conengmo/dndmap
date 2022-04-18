@@ -32,7 +32,7 @@
     #map {
       height: calc(100% - 50px);  /* subtract navbar height */
     }
-    
+
   </style>
 
 {% endblock %}
@@ -175,6 +175,7 @@
       let map;
       let component_layers = [];
       let layer_control;
+      let draggable_markers = false;
       const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
       (function setupMap() {
@@ -199,7 +200,29 @@
 
           getComponents();
 
-          L.easyButton('fa-list', prepareLayersOffcanvas).addTo(map);
+          L.easyButton('fa-list', prepareLayersOffcanvas, 'layers').addTo(map);
+
+          L.easyButton({
+              states: [{
+                  stateName: 'unlock-markers',
+                  icon: 'fa-unlock',
+                  title: 'unlock marker positions',
+                  onClick: function(btn) {
+                      draggable_markers = true;
+                      refreshComponents();
+                      btn.state('lock-markers');
+                  }
+              }, {
+                  stateName: 'lock-markers',
+                  icon: 'fa-lock',
+                  title: 'lock marker positions',
+                  onClick: function(btn) {
+                      draggable_markers = false;
+                      refreshComponents();
+                      btn.state('unlock-markers');
+                  }
+              }]
+          }).addTo(map);
 
           L.easyButton({
               states: [{
@@ -244,6 +267,11 @@
 
       })();
 
+      function refreshComponents() {
+          clearComponents();
+          getComponents();
+      }
+
       function clearComponents() {
           while (component_layers.length > 0) {
               let layer = component_layers.pop();
@@ -269,7 +297,11 @@
                       });
                       L.marker(
                           [marker.latitude, marker.longitude],
-                          {_data: marker, icon: icon, draggable: true},
+                          {
+                              _data: marker,
+                              icon: icon,
+                              draggable: draggable_markers,
+                          },
                       )
                           .addTo(layer_group)
                           .bindTooltip(marker.name)
@@ -341,8 +373,7 @@
           const xhttp = new XMLHttpRequest();
           xhttp.onload = function() {
               bootstrap.Offcanvas.getOrCreateInstance(offcanvas).hide();
-              clearComponents();
-              getComponents();
+              refreshComponents();
           }
           xhttp.open("POST", "{% url 'upsert_marker' map_obj.id %}");
           xhttp.setRequestHeader("Content-type", "application/json");
@@ -365,8 +396,7 @@
           const form = event.target;
           const xhttp = new XMLHttpRequest();
           xhttp.onload = function() {
-              clearComponents();
-              getComponents();
+              refreshComponents();
           }
           xhttp.open("POST", "{% url 'upsert_layer' map_obj.id %}");
           xhttp.setRequestHeader("Content-type", "application/json");
