@@ -126,28 +126,29 @@
     <div class="offcanvas-body">
 
       {% for layer in layers %}
-        <div class="row mb-4">
-          <form>
-            <div class="row">
+        <div class="row">
+          <div class="col">
+            <form>
               <label class="form-label">
                 Layer name
                 <input class="form-control" type="text" name="name" value="{{ layer.name }}" required />
               </label>
-            </div>
 
-            <div class="row">
               <label class="form-label">
                 Show at zoom level
                 <input type="number" class="form-control" name="show_at_zoom_level"
-                       value="{{ layer.show_at_zoom_level }}" min="1" max="5" step="1">
+                       value="{{ layer.show_at_zoom_level }}"
+                       min="{{ map_obj.min_zoom }}" max="{{ map_obj.max_zoom }}" step="1">
               </label>
-            </div>
 
-            <input type="hidden" name="id" value="{{ layer.id }}" />
+              <input type="hidden" name="id" value="{{ layer.id }}" />
 
-            <button type="submit" class="btn btn-primary">Submit</button>
+              <br />
 
-          </form>
+              <button type="submit" class="btn btn-primary">Submit</button>
+
+            </form>
+          </div>
         </div>
       {% endfor %}
 
@@ -376,36 +377,19 @@
               refreshComponents();
           }
           xhttp.open("POST", "{% url 'upsert_marker' map_obj.id %}");
-          xhttp.setRequestHeader("Content-type", "application/json");
           xhttp.setRequestHeader("X-CSRFToken", csrftoken)
-          xhttp.send(JSON.stringify({
-              id: form.querySelector('input[name="id"]').value,
-              name: form.querySelector('input[name="name"]').value,
-              description: form.querySelector('textarea[name="description"]').value,
-              latitude: form.querySelector('input[name="latitude"]').value,
-              longitude: form.querySelector('input[name="longitude"]').value,
-              layer_id: form.querySelector('select[name="layer_id"]').value,
-              color: form.querySelector('select[name="color"]').value,
-              icon: form.querySelector('input[name="icon"]').value,
-              icon_color: form.querySelector('input[name="icon_color"]').value,
-          }));
+          xhttp.send(new FormData(form));
       }
 
       function sendLayerData(event) {
           event.preventDefault();
-          const form = event.target;
           const xhttp = new XMLHttpRequest();
           xhttp.onload = function() {
               refreshComponents();
           }
           xhttp.open("POST", "{% url 'upsert_layer' map_obj.id %}");
-          xhttp.setRequestHeader("Content-type", "application/json");
           xhttp.setRequestHeader("X-CSRFToken", csrftoken)
-          xhttp.send(JSON.stringify({
-              id: form.querySelector('input[name="id"]').value,
-              name: form.querySelector('input[name="name"]').value,
-              show_at_zoom_level: form.querySelector('input[name="show_at_zoom_level"]').value,
-          }));
+          xhttp.send(new FormData(event.target));
       }
 
       function moveMarker(event) {

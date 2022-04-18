@@ -39,7 +39,7 @@ class CreateView(LoginRequiredMixin, generic.CreateView):
 def get_map(request: HttpRequest, map_obj: Map):
     context = {
         'map_obj': map_obj,
-        'layers': list(map_obj.layer_set.all()),
+        'layers': list(map_obj.layer_set.all()) + [{'name': '', 'id': '', 'show_at_zoom_level': map_obj.min_zoom}],
         'marker_color_options': Marker.ColorOptions.values,
     }
     return render(request, 'map/map.html', context)

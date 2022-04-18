@@ -20,9 +20,9 @@ def get_components(request: HttpRequest, map_obj: Map):
 @get_map_obj
 @login_required
 def upsert_marker(request: HttpRequest, map_obj: Map):
-    data = json.loads(request.body)
+    data = request.POST.dict()
     layer_id = data.pop('layer_id')
-    layer = Layer.objects.get(pk=layer_id)
+    layer = Layer.objects.get(id=layer_id)
     if layer.map_id != map_obj.id:
         return HttpResponse(status=403)
     marker_id = data.pop('id') or None
@@ -48,7 +48,7 @@ def update_marker_coords(request: HttpRequest, map_obj: Map):
 @login_required
 @require_http_methods(['POST'])
 def upsert_layer(request: HttpRequest, map_obj: Map):
-    data = json.loads(request.body)
+    data = request.POST.dict()
     layer_id = data.pop('id') or None
     Layer.objects.update_or_create(
         id=layer_id,
