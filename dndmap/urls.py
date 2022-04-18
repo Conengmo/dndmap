@@ -20,5 +20,6 @@ urlpatterns = [
     path("party/", views_party.party_view, name='party'),
     path("party/<int:pk>/", views_party.UpdateView.as_view(), name='update_party'),
     path("party/add/", views_party.CreateView.as_view(), name='create_party'),
-    path("party/<int:party_id>/member/<int:user_id>/", views_party.delete_party_member, name='party_delete_member'),
+    path("party/<int:pk>/member/add/", views_party.AddPartyMemberView.as_view(), name='add_party_member'),
+    path("party/<int:pk>/member/<int:user_id>/delete/", views_party.DeletePartyMemberView.as_view(), name='delete_party_member'),
 ]

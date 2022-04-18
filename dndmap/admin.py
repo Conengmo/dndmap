@@ -12,6 +12,7 @@ class UserInline(admin.TabularInline):
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
+    list_display = ('id', 'username', 'party', 'is_staff', 'date_joined')
     fieldsets = UserAdmin.fieldsets + (
         (None, {
             'fields': ('party',),

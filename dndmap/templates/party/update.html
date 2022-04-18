@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 
+{% load crispy_forms_tags %}
+
 
 {% block title %}Edit party{% endblock %}
 
@@ -10,14 +12,14 @@
 {% block content %}
 
   <div class="row">
-    <div class="col">
+    <div class="col-auto">
 
       <h1>Edit your party</h1>
 
       <form enctype="multipart/form-data" method="post">
         {% csrf_token %}
-        {{ form.as_p }}
-        <input type="submit" value="Save">
+        {{ form|crispy }}
+        <button class="btn btn-primary">Save</button>
       </form>
 
     </div>
@@ -30,7 +32,7 @@
 
       <ul>
         {% for member in members %}
-          <form action="{% url 'party_delete_member' object.id member.id %}" method="get">
+          <form action="{% url 'delete_party_member' object.id member.id %}" method="get">
             <li class="my-1">
               <span class="mr4">{{ member.username }}</span>
               {% if request.user.party.admin_id != member.id %}
@@ -40,6 +42,8 @@
           </form>
         {% endfor %}
       </ul>
+
+      <a href="{% url 'add_party_member' request.user.party_id %}">Add a new party member</a>
 
     </div>
   </div>
