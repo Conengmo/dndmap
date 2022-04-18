@@ -177,6 +177,7 @@
       let component_layers = [];
       let layer_control;
       let draggable_markers = false;
+      let permanent_tooltips = false;
       const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
       (function setupMap() {
@@ -229,34 +230,19 @@
               states: [{
                   stateName: 'show-labels',
                   icon: 'fa-tag',
-                  title: 'show labels, hide markers',
+                  title: 'show labels',
                   onClick: function(btn) {
-                      component_layers.forEach(function(layer) {
-                          layer.invoke('openTooltip');
-                          layer.invoke('setOpacity', 0);
-                      });
-                      btn.state('show-both');
+                      permanent_tooltips = true;
+                      refreshComponents();
+                      btn.state('hide-labels');
                   }
               }, {
-                  stateName: 'show-both',
-                  icon: 'fa-tags',
-                  title:  'show markers and labels',
+                  stateName: 'hide-labels',
+                  icon: 'fa-tag',
+                  title:  'hide labels',
                   onClick: function(btn) {
-                      component_layers.forEach(function(layer) {
-                          layer.invoke('openTooltip');
-                          layer.invoke('setOpacity', 1);
-                      });
-                      btn.state('show-markers');
-                  }
-              }, {
-                  stateName: 'show-markers',
-                  icon: 'fa-map-marker',
-                  title:  'show markers, hide labels',
-                  onClick: function(btn) {
-                      component_layers.forEach(function(layer) {
-                          layer.invoke('closeTooltip');
-                          layer.invoke('setOpacity', 1);
-                      });
+                      permanent_tooltips = false;
+                      refreshComponents();
                       btn.state('show-labels');
                   }
               }]
@@ -305,7 +291,7 @@
                           },
                       )
                           .addTo(layer_group)
-                          .bindTooltip(marker.name)
+                          .bindTooltip(marker.name, {permanent: permanent_tooltips})
                           .on('moveend', moveMarker)
                           .on('click', prepareExistingMarkerOffcanvas);
                   }
