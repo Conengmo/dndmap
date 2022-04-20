@@ -47,11 +47,16 @@
 
   <div class="offcanvas offcanvas-end" tabindex="-1" id="markerOffcanvas">
     <div class="offcanvas-header">
-      <h5 id="offcanvasRightLabel">Add new marker</h5>
+      <h5 id="offcanvasRightLabel" class="pt-2">Add new marker</h5>
       <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body">
-      <form action="javascript:sendMarkerData()">
+      <div class="marker-default collapse show multicollapse">
+        <div class="marker-description mb-4" style="white-space:pre-wrap;"></div>
+        <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#markerOffcanvas .multicollapse">Edit</button>
+      </div>
+
+      <form class="collapse multicollapse" action="javascript:sendMarkerData()">
         <div class="row mb-3">
           <label class="form-label">
             Title
@@ -62,7 +67,7 @@
         <div class="row mb-3">
           <label class="form-label">
             Description
-            <textarea class="form-control" name="description" placeholder=""></textarea>
+            <textarea class="form-control" name="description" placeholder="" rows="8"></textarea>
           </label>
         </div>
 
@@ -315,11 +320,14 @@
 
       function prepareNewMarkerOffcanvas(event) {
           const offcanvas = document.getElementById('markerOffcanvas');
+          offcanvas.querySelector('h5').innerHTML = 'Add new marker';
           const form = offcanvas.querySelector('form');
           form.reset();
           form.querySelector('input[name="id"]').value = '';
           form.querySelector('input[name="latitude"]').value = event.latlng.lat;
           form.querySelector('input[name="longitude"]').value = event.latlng.lng;
+          bootstrap.Collapse.getOrCreateInstance(offcanvas.querySelector('.marker-default')).hide();
+          bootstrap.Collapse.getOrCreateInstance(form).show();
 
           bootstrap.Offcanvas.getOrCreateInstance(offcanvas).show();
 
@@ -334,6 +342,8 @@
           const offcanvas = document.getElementById('markerOffcanvas');
           const form = offcanvas.querySelector('form');
           const marker = event.sourceTarget.options._data;
+          offcanvas.querySelector('h5').innerHTML = marker.name;
+          offcanvas.querySelector('.marker-description').innerHTML = marker.description;
           form.querySelector('input[name="id"]').value = marker.id;
           form.querySelector('input[name="name"]').value = marker.name;
           form.querySelector('textarea[name="description"]').value = marker.description;
@@ -343,6 +353,10 @@
           form.querySelector('select[name="color"]').value = marker.color;
           form.querySelector('input[name="icon"]').value = marker.icon;
           form.querySelector('input[name="icon_color"]').value = marker.icon_color;
+          offcanvas.addEventListener('hidden.bs.offcanvas', function () {
+              bootstrap.Collapse.getOrCreateInstance(offcanvas.querySelector('.marker-default')).show();
+              bootstrap.Collapse.getOrCreateInstance(form).hide();
+          });
           bootstrap.Offcanvas.getOrCreateInstance(offcanvas).show();
       }
 
