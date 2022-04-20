@@ -3,7 +3,7 @@
 {% load static %}
 
 
-{% block title %}Map{% endblock %}
+{% block title %}{{ map_obj.name }} - Dndmap{% endblock %}
 
 
 {% block nav-map %}active{% endblock %}
@@ -53,7 +53,10 @@
     <div class="offcanvas-body">
       <div class="marker-default collapse show multicollapse">
         <div class="marker-description mb-4" style="white-space:pre-wrap;"></div>
-        <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#markerOffcanvas .multicollapse">Edit</button>
+        <div class="marker-link-to-map"></div>
+        <button class="btn btn-primary mt-4"
+                data-bs-toggle="collapse" data-bs-target="#markerOffcanvas .multicollapse"
+          >Edit</button>
       </div>
 
       <form class="collapse multicollapse" action="javascript:sendMarkerData()">
@@ -107,6 +110,18 @@
                 <option value="{{ layer.id }}" {% if forloop.first %}selected{% endif %}>
                   {{ layer.name }}
                 </option>
+              {% endfor %}
+            </select>
+          </label>
+        </div>
+
+        <div class="row mb-3">
+          <label class="form-label">
+            Select map to link to (optional)
+            <select class="form-select" name="link_to_map_id">
+              <option value="" selected></option>
+              {% for map in maps %}
+                <option value="{{ map.id }}">{{ map.name }}</option>
               {% endfor %}
             </select>
           </label>
@@ -344,12 +359,15 @@
           const marker = event.sourceTarget.options._data;
           offcanvas.querySelector('h5').innerHTML = marker.name;
           offcanvas.querySelector('.marker-description').innerHTML = marker.description;
+          offcanvas.querySelector('.marker-link-to-map').innerHTML = marker.link_to_map_id ?
+              `<a href="/map/${marker.link_to_map_id}/">Link to map</a>` : "";
           form.querySelector('input[name="id"]').value = marker.id;
           form.querySelector('input[name="name"]').value = marker.name;
           form.querySelector('textarea[name="description"]').value = marker.description;
           form.querySelector('input[name="latitude"]').value = marker.latitude;
           form.querySelector('input[name="longitude"]').value = marker.longitude;
           form.querySelector('select[name="layer_id"]').value = marker.layer_id;
+          form.querySelector('select[name="link_to_map_id"]').value = marker.link_to_map_id;
           form.querySelector('select[name="color"]').value = marker.color;
           form.querySelector('input[name="icon"]').value = marker.icon;
           form.querySelector('input[name="icon_color"]').value = marker.icon_color;

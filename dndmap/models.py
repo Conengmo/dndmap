@@ -157,6 +157,7 @@ class Marker(models.Model):
     color = models.CharField(max_length=16, choices=ColorOptions.choices)
     icon = models.CharField(max_length=255)
     icon_color = models.CharField(max_length=64)
+    link_to_map = models.ForeignKey(Map, on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self):
         return f'{self.id}: {self.name} (layer {self.layer})'
@@ -172,6 +173,7 @@ class Marker(models.Model):
             'color': self.color,
             'icon': self.icon,
             'icon_color': self.icon_color,
+            'link_to_map_id': self.link_to_map_id,
         }
 
 
