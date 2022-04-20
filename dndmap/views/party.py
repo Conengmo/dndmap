@@ -51,10 +51,10 @@ class CreateView(LoginRequiredMixin, generic.CreateView):
 class CheckUserIsPartyAdminMixin(PermissionRequiredMixin):
 
     def has_permission(self):
-        return get_object_or_404(Party, id=self.kwargs['pk']).admin == self.request.user
+        return self.request.user.is_party_admin
 
 
-class UpdateView(CheckUserIsPartyAdminMixin, LoginRequiredMixin, generic.UpdateView):
+class UpdateView(LoginRequiredMixin, CheckUserIsPartyAdminMixin, generic.UpdateView):
     model = Party
     template_name = "party/update.html"
     fields = ["name"]
@@ -82,7 +82,7 @@ class CustomUserCreationForm(UserCreationForm):
         field_classes = {'username': UsernameField}
 
 
-class AddPartyMemberView(CheckUserIsPartyAdminMixin, LoginRequiredMixin, generic.View):
+class AddPartyMemberView(LoginRequiredMixin, CheckUserIsPartyAdminMixin, generic.View):
     http_method_names = ['get', 'post']
 
     def get(self, request, pk):
@@ -102,7 +102,7 @@ class AddPartyMemberView(CheckUserIsPartyAdminMixin, LoginRequiredMixin, generic
             return render(request, 'party/add_member.html', context)
 
 
-class DeletePartyMemberView(CheckUserIsPartyAdminMixin, LoginRequiredMixin, generic.View):
+class DeletePartyMemberView(LoginRequiredMixin, CheckUserIsPartyAdminMixin, generic.View):
     http_method_names = ['get']
 
     def get(self, request, pk, user_id):

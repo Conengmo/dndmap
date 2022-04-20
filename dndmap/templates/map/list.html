@@ -14,15 +14,27 @@
 
       <h1>Maps</h1>
 
-      <ul>
-        {% for map in object_list %}
-          <li><a href="{% url 'show_map' map.pk %}">{{ map.name }}</a></li>
+      <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for map in maps %}
+          <div class="col">
+            <div class="card">
+              <img class="card-img-top" src="{{ map.thumbnail_urlpath }}" alt="{{ map.name }}">
+              <div class="card-body">
+                <h5 class="card-title">{{ map.name }}</h5>
+                <a href="{% url 'show_map' map.id %}" class="btn btn-outline-primary stretched-link">Show map</a>
+              </div>
+            </div>
+          </div>
         {% empty %}
-          <li>No maps yet.</li>
+          <div class="col">
+            <p>No maps yet.</p>
+          </div>
         {% endfor %}
-      </ul>
+      </div>
 
-      <a href="{% url 'create_map' %}">Add map</a>
+      {% if request.user.is_party_admin %}
+        <a href="{% url 'create_map' %}" class="btn btn-primary">+ Add map</a>
+      {% endif %}
 
     </div>
   </div>

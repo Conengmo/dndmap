@@ -15,6 +15,10 @@ from .validators import validate_image_extension
 class User(AbstractUser):
     party = models.ForeignKey('Party', on_delete=models.CASCADE, blank=True, null=True)
 
+    @property
+    def is_party_admin(self) -> bool:
+        return self.party.admin == self
+
 
 class Party(models.Model):
     name = models.CharField(max_length=255)
@@ -52,6 +56,14 @@ class Map(models.Model):
     def tiles_filepath(self):
         return settings.STATIC_ROOT / 'tiles' / str(self.id)
 
+    @property
+    def thumbnail_urlpath(self):
+        return static(f"tiles/{self.id}/thumbnail.jpg")
+
+    @property
+    def thumbnail_filepath(self):
+        return self.tiles_filepath / 'thumbnail.jpg'
+
     def save(self, *args, **kwargs):
         created = not bool(self.pk)
         is_file_changed = self._original_file != self.file
@@ -62,13 +74,15 @@ class Map(models.Model):
         super().save(*args, **kwargs)
         if is_file_changed or self._original_zoom != (self.min_zoom, self.max_zoom):
             self._refresh_tileset()
+        if is_file_changed:
+            self._create_thumbnail()
         if created:
             Layer.objects.create(name='default', map=self)
 
     def _add_dimensions(self):
-        img = Image.open(self.file)
-        self.width = img.width
-        self.height = img.height
+        with Image.open(self.file) as img:
+            self.width = img.width
+            self.height = img.height
 
     def _set_max_zoom(self):
         """Calculate a maximum zoom level that fits given the image size."""
@@ -79,12 +93,20 @@ class Map(models.Model):
             ) / math.log(2)
         )
 
+    def _create_thumbnail(self):
+        self.tiles_filepath.mkdir(parents=True, exist_ok=True)
+        with Image.open(self.file) as img:
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+            img.thumbnail(size=(500, 500))
+            img.save(self.thumbnail_filepath, format='jpeg')
+
     def _refresh_tileset(self):
         shutil.rmtree(self.tiles_filepath, ignore_errors=True)
         # tile generation: fire and forget
         subprocess.Popen(
             f"{settings.PYTHON_EXECUTABLE} bin/gdal2tiles-leaflet.py"
-            f" -l -p raster -z {self.min_zoom}-{self.max_zoom} -w none"
+            f" --leaflet --profile raster --zoom {self.min_zoom}-{self.max_zoom} --webviewer none"
             f" {self.file} {self.tiles_filepath}",
             shell=True,
             stdout=subprocess.DEVNULL,
