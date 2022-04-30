@@ -8,8 +8,8 @@ from dndmap.decorators import get_map_obj
 from dndmap.models import Map, Marker, Layer
 
 
-@get_map_obj
 @login_required
+@get_map_obj
 def get_components(request: HttpRequest, map_obj: Map):
     return JsonResponse(
         [layer.to_dict() for layer in map_obj.layer_set.all()],
@@ -17,8 +17,8 @@ def get_components(request: HttpRequest, map_obj: Map):
     )
 
 
-@get_map_obj
 @login_required
+@get_map_obj
 def upsert_marker(request: HttpRequest, map_obj: Map):
     data = request.POST.dict()
     layer_id = data.pop('layer_id')
@@ -36,16 +36,16 @@ def upsert_marker(request: HttpRequest, map_obj: Map):
     return HttpResponse()
 
 
-@get_map_obj
 @login_required
+@get_map_obj
 def update_marker_coords(request: HttpRequest, map_obj: Map):
     data = json.loads(request.body)
     Marker.objects.filter(id=data.pop('id'), layer__map=map_obj).update(**data)
     return HttpResponse()
 
 
-@get_map_obj
 @login_required
+@get_map_obj
 @require_http_methods(['POST'])
 def upsert_layer(request: HttpRequest, map_obj: Map):
     data = request.POST.dict()

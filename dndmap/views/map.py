@@ -33,8 +33,8 @@ class CreateView(LoginRequiredMixin, generic.CreateView):
         return reverse("show_map", kwargs={"pk": self.object.pk})
 
 
-@get_map_obj
 @login_required
+@get_map_obj
 def get_map(request, map_obj: Map):
     context = {
         'map_obj': map_obj,
