@@ -4,6 +4,15 @@
 {% block title %}List maps{% endblock %}
 
 
+{% block style %}
+  <style>
+      .card.hover-shadow:hover {
+          box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15);;
+      }
+  </style>
+{% endblock %}
+
+
 {% block nav-map %}active{% endblock %}
 
 
@@ -17,11 +26,12 @@
       <div class="row row-cols-1 row-cols-md-3 g-4">
         {% for map in maps %}
           <div class="col">
-            <div class="card">
+            <div class="card hover-shadow">
               <img class="card-img-top" src="{{ map.thumbnail_urlpath }}" alt="{{ map.name }}">
               <div class="card-body">
-                <h5 class="card-title">{{ map.name }}</h5>
-                <a href="{% url 'show_map' map.id %}" class="btn btn-outline-primary stretched-link">Show map</a>
+                <h4 class="card-title mb-3">{{ map.name }}</h4>
+                  <a href="{% url 'show_map' map.id %}" class="stretched-link"></a>
+
               </div>
             </div>
           </div>

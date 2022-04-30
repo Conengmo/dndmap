@@ -6,6 +6,16 @@
 {% block title %}{{ map_obj.name }} - Dndmap{% endblock %}
 
 
+{% block style %}
+  <style>
+    nav.navbar {
+        padding: 0;
+        height: 50px;
+    }
+  </style>
+{% endblock %}
+
+
 {% block nav-map %}active{% endblock %}
 
 
@@ -47,7 +57,7 @@
 
   <div class="offcanvas offcanvas-end" tabindex="-1" id="markerOffcanvas">
     <div class="offcanvas-header">
-      <h5 id="offcanvasRightLabel" class="pt-2">Add new marker</h5>
+      <h5 id="offcanvasRightLabel" class="pt-2 font-alt">Add new marker</h5>
       <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body">
