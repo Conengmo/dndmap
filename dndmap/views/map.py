@@ -20,7 +20,7 @@ def list_maps(request):
 class CreateView(LoginRequiredMixin, generic.CreateView):
     model = Map
     template_name = "map/create.html"
-    fields = ["name", "file"]
+    fields = ["name", "file", "scale"]
 
     def form_valid(self, form):
         obj = form.save(commit=False)

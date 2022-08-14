@@ -34,6 +34,7 @@ class Map(models.Model):
     file = models.FileField(upload_to="maps/", validators=[validate_image_extension])
     width = models.IntegerField(blank=True)
     height = models.IntegerField(blank=True)
+    scale = models.FloatField(default=1.0)
     min_zoom = models.IntegerField(default=1)
     max_zoom = models.IntegerField(default=5)
 

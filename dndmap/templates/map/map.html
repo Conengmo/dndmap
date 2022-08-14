@@ -19,6 +19,7 @@
         crossorigin="anonymous"
         referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="{% static 'awesome_markers/leaflet.awesome-markers.css' %}" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/conengmo/Leaflet.SimpleCRSMeasurement/leaflet-ruler.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.css">
 
 {% endblock %}
@@ -195,6 +196,7 @@
           crossorigin="anonymous"
           referrerpolicy="no-referrer"></script>
   <script src="{% static 'awesome_markers/leaflet.awesome-markers.js' %}"></script>
+  <script src="https://cdn.jsdelivr.net/gh/conengmo/Leaflet.SimpleCRSMeasurement/leaflet-ruler.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
 
   <script src="{% static 'rastercoords.js' %}"></script>
@@ -273,6 +275,10 @@
                       btn.state('show-labels');
                   }
               }]
+          }).addTo(map);
+
+          L.control.ruler({
+              scale: {{ map_obj.scale }},
           }).addTo(map);
 
           map.on('dblclick', prepareNewMarkerOffcanvas);
