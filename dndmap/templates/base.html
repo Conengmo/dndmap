@@ -62,13 +62,10 @@
         <div class="collapse navbar-collapse ms-4" id="navbarSupportedContent">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item">
-              <a class="nav-link {% block nav-home %}{% endblock %}" href="{% url 'index' %}">Home</a>
+              <a class="nav-link {% block nav-map %}{% endblock %}" href="{% url 'list_map' %}">Maps</a>
             </li>
             <li class="nav-item">
               <a class="nav-link {% block nav-party %}{% endblock %}" href="{% url 'party' %}">Party</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link {% block nav-map %}{% endblock %}" href="{% url 'list_map' %}">Maps</a>
             </li>
             {% if request.user.is_staff %}
               <li class="nav-item">
