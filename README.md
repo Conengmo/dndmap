@@ -8,24 +8,23 @@ I use this to share maps from my D&D game with my party and let them add locatio
 
 <img width="990" alt="image" src="https://user-images.githubusercontent.com/33519926/163684956-b68fd9b6-7fa2-4457-88dd-66e3f478c8ad.png">
 
+## Features
 
-## Development resources
-We use this library to convert an image into a Leaflet tileset:
-https://github.com/commenthol/gdal2tiles-leaflet
+- Create a group of users with one admin.
+- Add a map by uploading an image.
+- Users in your group can add and edit markers.
+- Markers can have different colors and icons.
+- Group markers in layers.
+- Measure distances.
 
-It's included in this repo, use it like this:
-```
-python bin/gdal2tiles-leaflet.py -l -p raster -z 0-5 -w none <image> <output folder>
-```
+## How to use
 
-And used some code from here for Leaflet settings:
-https://github.com/commenthol/leaflet-rastercoords
-
-### Installing gdal
-This is a bit more involved than your average Python library. I found this guide useful:
+- Get the code from this repo
+- Install Python dependencies from `requirements.txt`
+- Install GDAL.
+  This is a bit more involved than your average Python library. I found this guide useful:
 https://mothergeo-py.readthedocs.io/en/latest/development/how-to/gdal-ubuntu-pkg.html
-
-I installed the Python bindings with ```pip install pygdal=="`gdal-config --version`.*"```
+- Install Python bindings for GDAL. I used ```pip install pygdal=="`gdal-config --version`.*"```
 
 
 ## Deployment
@@ -65,3 +64,18 @@ export "DJANGO_SECRET_KEY=<secret key>"
 ~/venvs/dndmap/bin/python manage.py migrate
 sudo systemctl restart dndmap
 ```
+
+
+## Development resources
+Here we list some of the things we used when creating this project.
+
+We use this library to convert an image into a Leaflet tileset:
+https://github.com/commenthol/gdal2tiles-leaflet
+
+And used some code from here for Leaflet settings:
+https://github.com/commenthol/leaflet-rastercoords
+
+This project uses https://github.com/Conengmo/Leaflet.SimpleCRSMeasurement, which itself is a fork
+of https://github.com/gokertanrisever/leaflet-ruler.
+
+For markers we use https://github.com/lennardv2/Leaflet.awesome-markers.
