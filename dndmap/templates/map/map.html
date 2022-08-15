@@ -41,6 +41,14 @@
     #map {
       height: calc(100% - 50px);  /* subtract navbar height */
     }
+    .leaflet-control-layers-overlays > label, #addLayerButton {
+        margin: 5px 3px;
+        font-size: 14px;
+    }
+    .leaflet-control-layers-overlays a.edit-layer {
+        margin-left: 8px;
+        float: right;
+    }
 
   </style>
 {% endblock %}
@@ -146,39 +154,37 @@
   </div>
 
 
-  <div class="offcanvas offcanvas-end" tabindex="-1" id="layersOffcanvas">
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="editLayerOffcanvas">
     <div class="offcanvas-header">
-      <h5 id="offcanvasRightLabel">Layers</h5>
+      <h5 id="offcanvasRightLabel">Edit layers</h5>
       <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body">
 
-      {% for layer in layers %}
-        <div class="row">
-          <div class="col">
-            <form>
-              <label class="form-label">
-                Layer name
-                <input class="form-control" type="text" name="name" value="{{ layer.name }}" required />
-              </label>
+      <div class="row">
+        <div class="col">
+          <form>
+            <label class="form-label">
+              Layer name
+              <input class="form-control" type="text" name="name" value="" required />
+            </label>
 
-              <label class="form-label">
-                Show at zoom level
-                <input type="number" class="form-control" name="show_at_zoom_level"
-                       value="{{ layer.show_at_zoom_level }}"
-                       min="{{ map_obj.min_zoom }}" max="{{ map_obj.max_zoom }}" step="1">
-              </label>
+            <label class="form-label">
+              Show at zoom level
+              <input type="number" class="form-control" name="show_at_zoom_level"
+                     value=""
+                     min="{{ map_obj.min_zoom }}" max="{{ map_obj.max_zoom }}" step="1">
+            </label>
 
-              <input type="hidden" name="id" value="{{ layer.id }}" />
+            <input type="hidden" name="id" value="" />
 
-              <br />
+            <br />
 
-              <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
 
-            </form>
-          </div>
+          </form>
         </div>
-      {% endfor %}
+      </div>
 
     </div>
   </div>
@@ -228,10 +234,12 @@
           }).addTo(map)
 
           layer_control = L.control.layers({}, {}, {collapsed: false}).addTo(map);
+          let div = document.createElement('div');
+          div.innerHTML = `<a href="#" id="addLayerButton" onclick="prepareEditLayerOffcanvas('', null, {{ map_obj.min_zoom }})">
+                           <i class="fas fa-plus-square text-primary"></i></a>`
+          layer_control._container.appendChild(div);
 
           getComponents();
-
-          L.easyButton('fa-list', prepareLayersOffcanvas, 'layers').addTo(map);
 
           L.easyButton({
               states: [{
@@ -308,7 +316,11 @@
                   let layer_group = L.layerGroup([]).addTo(map);
                   layer_group.show_at_zoom_level = layer.show_at_zoom_level;
                   component_layers.push(layer_group);
-                  layer_control.addOverlay(layer_group, layer.name);
+                  let layer_display_html = `${layer.name}
+                      <a href='#' class="edit-layer"
+                         onclick="prepareEditLayerOffcanvas('${layer.name}', ${layer.id}, ${layer.show_at_zoom_level})">
+                        <i class="fas fa-edit text-primary"></i></a>`
+                  layer_control.addOverlay(layer_group, layer_display_html);
                   for (let marker of layer.markers) {
                       const icon = L.AwesomeMarkers.icon({
                           markerColor: marker.color,
@@ -391,11 +403,13 @@
           bootstrap.Offcanvas.getOrCreateInstance(offcanvas).show();
       }
 
-      function prepareLayersOffcanvas(event) {
-          const offcanvas = document.getElementById('layersOffcanvas');
-          offcanvas.querySelectorAll('form').forEach(function(el) {
-              el.addEventListener('submit', sendLayerData);
-          });
+      function prepareEditLayerOffcanvas(layer_name, layer_id, show_at_zoom_level) {
+          const offcanvas = document.getElementById('editLayerOffcanvas');
+          const form = offcanvas.querySelector('form');
+          form.querySelector('input[name="id"]').value = layer_id;
+          form.querySelector('input[name="name"]').value = layer_name;
+          form.querySelector('input[name="show_at_zoom_level"]').value = show_at_zoom_level;
+          form.addEventListener('submit', sendLayerData);
           bootstrap.Offcanvas.getOrCreateInstance(offcanvas).show();
       }
 
@@ -414,8 +428,10 @@
 
       function sendLayerData(event) {
           event.preventDefault();
+          const offcanvas = document.getElementById('editLayerOffcanvas');
           const xhttp = new XMLHttpRequest();
           xhttp.onload = function() {
+              bootstrap.Offcanvas.getOrCreateInstance(offcanvas).hide();
               refreshComponents();
           }
           xhttp.open("POST", "{% url 'upsert_layer' map_obj.id %}");
