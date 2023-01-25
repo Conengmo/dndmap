@@ -1,5 +1,5 @@
 # pygdal
 django==3.2.*
-Pillow==9.1.*
+Pillow==9.2.*
 django-cleanup
 crispy-bootstrap5==0.6
