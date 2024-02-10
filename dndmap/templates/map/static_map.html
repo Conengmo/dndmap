@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+  <title>dndmap</title>
+  <link rel="icon" href="data:,">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+        rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+        crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+        integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
+        crossorigin=""/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+        integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"/>
+  <link rel="stylesheet" href="awesome_markers/leaflet.awesome-markers.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/conengmo/Leaflet.SimpleCRSMeasurement/leaflet-ruler.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.css">
+
+  <style>
+      html, body, #map {
+          width: 100%;
+          height: 100%;
+          margin: 0;
+          padding: 0;
+          background-color: #f8f9fa
+      }
+      .leaflet-control-layers-overlays label {
+          margin: 6px 6px;
+      }
+  </style>
+
+<body>
+
+<div id="map"></div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"
+        integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF"
+        crossorigin="anonymous"></script>
+<script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
+        integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
+        crossorigin=""></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"
+        integrity="sha512-Tn2m0TIpgVyTzzvmxLNuqbSJH3JP8jm+Cy3hvHrW7ndTDcJ1w5mBiksqDBb8GpE2ksktFvDB/ykZ0mDpsZj20w=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+<script src="awesome_markers/leaflet.awesome-markers.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/conengmo/Leaflet.SimpleCRSMeasurement/leaflet-ruler.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
+
+<script src="rastercoords.js"></script>
+
+<script>
+    let map;
+    let component_layers = [];
+    let layer_control;
+    let draggable_markers = false;
+    let permanent_tooltips = false;
+
+    let img = [
+        {{ map_obj.width }},
+        {{ map_obj.height }},
+    ]
+    map = L.map('map', {
+        crs: L.CRS.Simple,
+    })
+    const raster_coords = new L.RasterCoords(map, img)
+    map.setView(raster_coords.unproject([img[0], img[1]]), 2)
+
+    L.tileLayer('{{ map_obj.tiles_urlpath }}{z}/{x}/{y}.png', {
+        noWrap: true,
+        bounds: raster_coords.getMaxBounds(),
+        minZoom: {{ map_obj.min_zoom }},
+        maxZoom: {{ map_obj.max_zoom }},
+    }).addTo(map)
+
+    layer_control = L.control.layers({}, {}, {collapsed: false}).addTo(map);
+
+    let layer_group;
+
+    {% for layer in components %}
+        layer_group = L.layerGroup([]).addTo(map);
+        layer_group.show_at_zoom_level = {{ layer.show_at_zoom_level }};
+        component_layers.push(layer_group);
+        layer_control.addOverlay(layer_group, "{{ layer.name }}");
+
+        {% for marker in layer.markers %}
+            L.marker(
+                [{{marker.latitude}}, {{marker.longitude}}],
+                {
+                    icon: L.AwesomeMarkers.icon({
+                        markerColor: "{{ marker.color }}",
+                        icon: "{{ marker.icon }}",
+                        iconColor: "{{ marker.icon_color }}",
+                    }),
+                },
+            )
+                .addTo(layer_group)
+                .bindTooltip("{{ marker.name }}")
+                {% if marker.description %}
+                  .bindPopup(`{{ marker.description|linebreaksbr }}`)
+                {% endif %}
+        {% endfor %}
+    {% endfor %}
+
+    L.control.ruler({
+        scale: {{ map_obj.scale }},
+    }).addTo(map);
+
+    map.on('zoomend', setLayerVisibility);
+
+
+    function setLayerVisibility() {
+        const zoom = map.getZoom();
+        for (let layer of component_layers) {
+            if (zoom < layer.show_at_zoom_level) {
+                map.removeLayer(layer);
+            } else {
+                map.addLayer(layer);
+            }
+        }
+    }
+
+</script>
+
+</body>
+
+</html>

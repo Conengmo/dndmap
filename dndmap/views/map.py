@@ -1,6 +1,10 @@
+import os
+import shutil
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views import generic
@@ -43,3 +47,28 @@ def get_map(request, map_obj: Map):
         'marker_color_options': Marker.ColorOptions.values,
     }
     return render(request, 'map/map.html', context)
+
+
+@login_required
+@get_map_obj
+def map_to_static(request, map_obj: Map):
+    context = {
+        'map_obj': map_obj,
+        'components': [layer.to_dict() for layer in map_obj.layer_set.all()],
+    }
+    resp = render(request, 'map/static_map.html', context)
+    html_bytes = resp.content
+    html_bytes = html_bytes.replace(b"/static/tiles/", b"tiles/")
+
+    source_folder = "dndmap/static"
+    destination_folder = "static_export"
+
+    if os.path.exists(destination_folder):
+        shutil.rmtree(destination_folder)
+
+    shutil.copytree(source_folder, destination_folder)
+
+    with open(os.path.join(destination_folder, "index.html"), "wb") as f:
+        f.write(html_bytes)
+
+    return HttpResponse("Finished")

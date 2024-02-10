@@ -121,3 +121,4 @@ dmypy.json
 dndmap/static/tiles/
 static/
 maps/
+static_export/
