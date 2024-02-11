@@ -16,6 +16,7 @@ I use this to share maps from my D&D game with my party and let them add locatio
 - Markers can have different colors and icons.
 - Group markers in layers.
 - Measure distances.
+- Export as static maps
 
 ## How to use
 
@@ -26,8 +27,15 @@ I use this to share maps from my D&D game with my party and let them add locatio
 https://mothergeo-py.readthedocs.io/en/latest/development/how-to/gdal-ubuntu-pkg.html
 - Install Python bindings for GDAL. I used ```pip install pygdal=="`gdal-config --version`.*"```
 
+## Deployment on Github Pages
 
-## Deployment
+Do you want to use free hosting? Don't mind that only you can add markers?
+Then run Django locally, edit your maps, and press the 'export as static maps' button on the map list view.
+Your maps will be exported to a local folder, which you can upload to Github Pages.
+
+## Deployment on a webserver
+
+This is the best way to deploy this project, since it will allow your friends to also add and edit markers.
 
 I'm using a server with Nginx and uWSGI.
 
