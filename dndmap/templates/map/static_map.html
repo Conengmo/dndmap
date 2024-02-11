@@ -28,6 +28,7 @@
           padding: 0;
           background-color: #f8f9fa
       }
+
       .leaflet-control-layers-overlays label {
           margin: 6px 6px;
       }
@@ -97,21 +98,53 @@
                         icon: "{{ marker.icon }}",
                         iconColor: "{{ marker.icon_color }}",
                     }),
+                    title: "{{ marker.name }}"
                 },
             )
                 .addTo(layer_group)
                 .bindTooltip("{{ marker.name }}")
                 {% if marker.description %}
-                  .bindPopup(`{{ marker.description|linebreaksbr }}`)
+                    .bindPopup(`{{ marker.description|linebreaksbr }}`)
                 {% endif %}
         {% endfor %}
     {% endfor %}
+
+    L.easyButton({
+        states: [{
+            stateName: 'show-labels',
+            icon: 'fa-tag',
+            title: 'show labels',
+            onClick: function (btn) {
+                recreate_marker_tooltips({permanent: true});
+                btn.state('hide-labels');
+            }
+        }, {
+            stateName: 'hide-labels',
+            icon: 'fa-tag',
+            title: 'hide labels',
+            onClick: function (btn) {
+                recreate_marker_tooltips({permanent: false});
+                btn.state('show-labels');
+            }
+        }]
+    }).addTo(map);
 
     L.control.ruler({
         scale: {{ map_obj.scale }},
     }).addTo(map);
 
     map.on('zoomend', setLayerVisibility);
+
+
+    function recreate_marker_tooltips(options) {
+        const {permanent = false} = options;
+        component_layers.forEach(layer_group => {
+            layer_group.eachLayer(function (marker) {
+                marker.unbindTooltip();
+                marker.bindTooltip(marker.options.title, {permanent: options.permanent});
+            });
+        })
+    }
 
 
     function setLayerVisibility() {
