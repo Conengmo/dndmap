@@ -2,10 +2,11 @@ import os
 import shutil
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpRequest
 from django.shortcuts import render
 from django.urls import reverse
 from django.views import generic
@@ -50,21 +51,31 @@ def get_map(request, map_obj: Map):
     return render(request, 'map/map.html', context)
 
 
-@login_required
-@get_map_obj
-def map_to_static(request, map_obj: Map):
+def _map_to_static(map_obj: Map, destination: str):
     context = {
         'map_obj': map_obj,
         'components': [layer.to_dict() for layer in map_obj.layer_set.all()],
     }
-    resp = render(request, 'map/static_map.html', context)
+    resp = render(HttpRequest(), 'map/static_map.html', context)
     html_bytes = resp.content
     html_bytes = html_bytes.replace(b"/static/tiles/", b"tiles/")
+    shutil.copytree(
+        map_obj.tiles_filepath,
+        os.path.join(destination, "tiles", str(map_obj.id))
+    )
+    with open(os.path.join(destination, f"{map_obj.name.lower()}.html"), "wb") as f:
+        f.write(html_bytes)
 
+
+@login_required
+def export_static_maps(request):
+    map_objs = Map.objects.filter(party_id=request.user.party_id)
+    context = {
+        'maps': map_objs,
+    }
     destination = "static_export"
     if os.path.exists(destination):
         shutil.rmtree(destination)
-
     shutil.copytree(
         settings.STATIC_ROOT / "awesome_markers",
         os.path.join(destination, "awesome_markers")
@@ -73,12 +84,12 @@ def map_to_static(request, map_obj: Map):
         settings.STATIC_ROOT / "rastercoords.js",
         os.path.join(destination, "rastercoords.js")
     )
-    shutil.copytree(
-        map_obj.tiles_filepath,
-        os.path.join(destination, "tiles", str(map_obj.id))
-    )
-
+    resp = render(HttpRequest(), 'map/static_list.html', context)
+    html_bytes = resp.content
+    html_bytes = html_bytes.replace(b"/static/tiles/", b"tiles/")
     with open(os.path.join(destination, "index.html"), "wb") as f:
         f.write(html_bytes)
-
-    return HttpResponse("Finished")
+    for map_obj in map_objs:
+        _map_to_static(map_obj, destination)
+    messages.success(request, 'Exported maps as static files.', 'alert-success')
+    return render(request, 'map/list.html', context)

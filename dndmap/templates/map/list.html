@@ -44,6 +44,7 @@
 
       {% if request.user.is_party_admin %}
         <a href="{% url 'create_map' %}" class="btn btn-primary">+ Add map</a>
+        <a href="{% url 'export_static_maps' %}" class="btn btn-secondary ms-4">Export as static maps</a>
       {% endif %}
 
     </div>
