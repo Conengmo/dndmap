@@ -1,6 +1,7 @@
 import os
 import shutil
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
@@ -60,15 +61,24 @@ def map_to_static(request, map_obj: Map):
     html_bytes = resp.content
     html_bytes = html_bytes.replace(b"/static/tiles/", b"tiles/")
 
-    source_folder = "dndmap/static"
-    destination_folder = "static_export"
+    destination = "static_export"
+    if os.path.exists(destination):
+        shutil.rmtree(destination)
 
-    if os.path.exists(destination_folder):
-        shutil.rmtree(destination_folder)
+    shutil.copytree(
+        settings.STATIC_ROOT / "awesome_markers",
+        os.path.join(destination, "awesome_markers")
+    )
+    shutil.copy2(
+        settings.STATIC_ROOT / "rastercoords.js",
+        os.path.join(destination, "rastercoords.js")
+    )
+    shutil.copytree(
+        map_obj.tiles_filepath,
+        os.path.join(destination, "tiles", str(map_obj.id))
+    )
 
-    shutil.copytree(source_folder, destination_folder)
-
-    with open(os.path.join(destination_folder, "index.html"), "wb") as f:
+    with open(os.path.join(destination, "index.html"), "wb") as f:
         f.write(html_bytes)
 
     return HttpResponse("Finished")
